@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Llaves - Local</title>
+    <title>Control de Llaves</title>
     <script src="https://cdn.tailwindcss.com"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -44,7 +44,7 @@
 
             <form id="login-form" class="space-y-4">
                 <div>
-                    <label for="username" class="block text-sm font-medium text-gray-700">Nombre de Guardia de Seguridad</label>
+                    <label for="username" class="block text-sm font-medium text-gray-700">Nombre de Agente de Seguridad</label>
                     <select id="username" name="username" required 
                            class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white">
                         <option value="">-- Seleccione su Nombre --</option>
@@ -84,7 +84,7 @@
         <div class="mb-6 flex justify-center">
             <button id="end-day-report-btn" onclick="generateDailyReportPdf()" class="btn-report flex items-center space-x-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"></path><line x1="10" y1="13" x2="14" y2="13"></line><line x1="12" y1="17" x2="12" y2="17"></line></svg>
-                <span>Terminar Día (Generar PDF)</span>
+                <span>Terminar Día</span>
             </button>
         </div>
 
@@ -102,7 +102,7 @@
             <form id="checkout-form" class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label for="userName" class="block text-sm font-medium text-gray-700">Nombre de Usuario que Solicita</label>
+                        <label for="userName" class="block text-sm font-medium text-gray-700">Usuario que Solicita</label>
                         <select id="userName" name="userName" required class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white">
                             <option value="">-- Seleccione Usuario --</option>
                             <option value="Rafael Ramos">Rafael Ramos</option>
@@ -170,21 +170,19 @@
 
         <div id="return-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden items-center justify-center p-4 z-50">
             <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
-                <h3 class="text-xl font-bold mb-4 text-indigo-700 border-b pb-2">Confirmar Devolución (RETORNA)</h3>
+                <h3 class="text-xl font-bold mb-4 text-indigo-700 border-b pb-2">Confirmar Devolución</h3>
                 <p class="text-gray-600 mb-4">Confirmar devolución de: <strong id="modal-key-name" class="text-indigo-600 font-extrabold"></strong>.</p>
                 <p class="text-gray-500 text-sm mb-4">Solicitada por: <span id="modal-user-name" class="font-semibold"></span></p>
 
                 <form id="return-form" class="space-y-4">
                     <div>
-                        <label for="returnLocation" class="block text-sm font-medium text-gray-700">Departamento de Devolución</label>
+                        <label for="returnLocation" class="block text-sm font-medium text-gray-700">Lugar de Devolución</label>
                         <select id="returnLocation" name="returnLocation" required class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-green-500 focus:border-green-500 appearance-none bg-white">
-                            <option value="">-- Seleccione Departamento --</option>
-                            <option value="Rimith">Rimith</option>
-                            <option value="Nevera">Nevera</option>
-                            <option value="Panaderia">Panadería</option>
-                            <option value="Estanteria">Estantería</option>
-                            <option value="Sanidad">Sanidad</option>
-                            <option value="Recibo">Recibo</option>
+                            <option value="">-- Seleccione Lugar --</option>
+                            <option value="Rimith">Seguridad Interno</option>
+                            <option value="Nevera">Oficina de seguridad</option>
+                            <option value="Panaderia">Entregada a otro personal</option>
+                      
                         </select>
                     </div>
 
@@ -217,12 +215,12 @@
         // CLAVE: Las claves del objeto son los nombres de los guardias.
         // ID: Usado internamente para registrar quién hizo la entrega/devolución.
         const VALID_USERS = {
-            'Rafael Ramos': { password: 'clave123', id: 'RR' },
-            'José Guevara': { password: 'clave123', id: 'JG' },
-            'Ariel Bernal': { password: 'clave123', id: 'AB' },
-            'Oriel Aizprua': { password: 'clave123', id: 'OA' },
-            'Leandro Pérez': { password: 'clave123', id: 'LP' },
-            'Samuel Reyes': { password: 'clave123', id: 'SR' }
+            'Rafael Ramos': { password: '1234', id: 'RR' },
+            'José Guevara': { password: '1234', id: 'JG' },
+            'Ariel Bernal': { password: '1234', id: 'AB' },
+            'Oriel Aizprua': { password: '1234', id: 'OA' },
+            'Leandro Pérez': { password: '1234', id: 'LP' },
+            'Samuel Reyes': { password: '1234', id: 'SR' }
         };
 
         let securityId = null; // ID del guardia actualmente logueado
@@ -562,7 +560,7 @@
 
         // ******************************************************************
         // ************ FUNCIÓN DE EXPORTACIÓN CON jsPDF.autoTable() *********
-        // ************ CÓDIGO CORREGIDO ************************************
+        // ************ CÓDIGO CORREGIDO Y ROBUSTO **************************
         // ******************************************************************
 
         // Función auxiliar para añadir el encabezado y pie de página, similar al Código 1
@@ -607,9 +605,32 @@
                 return;
             }
             
-            // Se elimina la validación estricta que causaba el error con la versión UMD
-            // Se confía en la carga correcta de las CDN en el <head>
-            
+            let jsPDF_Constructor;
+
+            // 1. Intentar acceder a jsPDF de la forma UMD (más común)
+            if (typeof jsPDF !== 'undefined') {
+                jsPDF_Constructor = jsPDF;
+            } 
+            // 2. Intentar acceder a través del objeto anidado (común en CDN)
+            else if (window.jspdf && window.jspdf.jsPDF) {
+                jsPDF_Constructor = window.jspdf.jsPDF;
+            } 
+            // 3. Fallback: Si no se encontró el constructor, mostrar error.
+            else {
+                showMessage("❌ ERROR: La librería jsPDF no se cargó correctamente. Intente refrescar el navegador (Ctrl+F5) o revise la conexión a internet.", 'error');
+                return;
+            }
+
+            // 4. Inicializar el documento
+            const doc = new jsPDF_Constructor('p', 'mm', 'a4'); 
+
+            // 5. Verificar que el plugin autoTable se haya aplicado al documento
+            if (typeof doc.autoTable !== 'function') {
+                showMessage("❌ ERROR: El plugin jsPDF AutoTable no se cargó. El reporte no puede generarse.", 'error');
+                return;
+            }
+
+
             const logs = loadLogs();
             const startOfToday = getStartOfToday();
             // Filtra los logs de hoy y ordena por hora de entrega
@@ -621,11 +642,8 @@
                 return;
             }
 
-            // CORRECCIÓN CLAVE: Se inicializa jsPDF correctamente
-            const doc = new jsPDF('p', 'mm', 'a4'); 
             const margin = 10;
             const pageWidth = doc.internal.pageSize.getWidth();
-            const pageHeight = doc.internal.pageSize.getHeight();
 
             let currentY = addReportHeaderAndFooter(doc, pageWidth, margin);
 
