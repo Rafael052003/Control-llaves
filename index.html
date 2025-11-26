@@ -1,21 +1,704 @@
-{
-"name": "Control de Llaves RS (Local)",
-"short_name": "KeyLogLocal",
-"description": "App para el registro de activos y llaves (solo en este dispositivo).",
-"start_url": "./index.html",
-"display": "standalone",
-"background_color": "#eef2ff",
-"theme_color": "#4f46e5",
-"icons": [
-{
-"src": "https://www.google.com/search?q=https://placehold.co/192x192/4f46e5/ffffff/png%3Ftext%3DCL",
-"sizes": "192x192",
-"type": "image/png"
-},
-{
-"src": "https://www.google.com/search?q=https://placehold.co/512x512/4f46e5/ffffff/png%3Ftext%3DCL",
-"sizes": "512x512",
-"type": "image/png"
-}
-]
-}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Llaves - Local</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Carga de jsPDF para la generación de reportes PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Referencia al Manifiesto de la PWA -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Configuración de la fuente Inter y el estilo de Tailwind -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #eef2ff; /* Fondo muy suave azul */
+        }
+        /* Estilos generales de la aplicación */
+        .app-container {
+            @apply max-w-4xl mx-auto p-4 md:p-8;
+        }
+        .card {
+            @apply bg-white p-6 rounded-2xl shadow-xl border border-indigo-100/50 transition-all duration-300;
+        }
+        .btn-primary {
+            @apply px-6 py-3 font-bold text-white bg-indigo-600 rounded-xl shadow-lg hover:bg-indigo-700 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-indigo-300;
+        }
+        .btn-success {
+            @apply px-4 py-2 font-semibold text-white bg-green-600 rounded-xl hover:bg-green-700 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-green-300;
+        }
+        .btn-report {
+            @apply px-4 py-2 font-semibold text-white bg-red-600 rounded-xl hover:bg-red-700 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-red-300;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- MODAL DE INICIO DE SESIÓN (LOGIN) - CUBRE TODA LA PANTALLA INICIALMENTE -->
+    <div id="login-modal" class="fixed inset-0 bg-indigo-900 bg-opacity-95 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm transform transition-transform duration-500 ease-out">
+            <h3 class="text-3xl font-extrabold mb-4 text-indigo-700 text-center">Acceso de Seguridad</h3>
+            <p class="text-gray-600 mb-6 text-center">Seleccione su nombre e ingrese su contraseña.</p>
+            
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700">Nombre de Guardia de Seguridad</label>
+                    <!-- CAMBIO CLAVE: SELECT para el login -->
+                    <select id="username" name="username" required 
+                           class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white">
+                        <option value="">-- Seleccione su Nombre --</option>
+                        <option value="Rafael Ramos">Rafael Ramos</option>
+                        <option value="José Guevara">José Guevara</option>
+                        <option value="Ariel Bernal">Ariel Bernal</option>
+                        <option value="Oriel Aizprua">Oriel Aizprua</option>
+                        <option value="Leandro Pérez">Leandro Pérez</option>
+                        <option value="Samuel Reyes">Samuel Reyes</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
+                    <input type="password" id="password" name="password" required 
+                           class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500"
+                           placeholder="Contraseña">
+                </div>
+
+                <div id="login-error" class="hidden text-red-600 text-sm font-semibold">Credenciales incorrectas.</div>
+
+                <button type="submit" class="btn-primary w-full mt-6">
+                    Iniciar Sesión
+                </button>
+            </form>
+        </div>
+    </div>
+    <!-- FIN MODAL DE LOGIN -->
+
+
+    <div id="main-app-content" class="app-container hidden">
+
+        <!-- Header -->
+        <header class="text-center py-8 mb-4 bg-indigo-700 text-white rounded-b-3xl shadow-2xl flex justify-between items-center px-6">
+            <h1 class="text-2xl md:text-4xl font-extrabold tracking-tight">Control de Activos</h1>
+            <button id="logout-btn" onclick="handleLogout()" class="px-3 py-1.5 font-semibold text-xs bg-white text-indigo-700 rounded-lg hover:bg-gray-100 transition-colors">
+                Cerrar Sesión
+            </button>
+        </header>
+
+        <!-- Botón de Terminar Día / Reporte -->
+        <div class="mb-6 flex justify-center">
+            <button id="end-day-report-btn" onclick="generateDailyReportPdf()" class="btn-report flex items-center space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"></path><line x1="10" y1="13" x2="14" y2="13"></line><line x1="12" y1="17" x2="12" y2="17"></line></svg>
+                <span>Terminar Día (Generar PDF)</span>
+            </button>
+        </div>
+
+        <!-- Mensajes de Estado/Error -->
+        <div id="message-container"></div>
+        <div id="auth-status" class="mb-10 card text-sm">
+            <p class="flex items-center justify-between">
+                ID de Seguridad Activo: 
+                <span id="security-id" class="font-mono text-xs bg-indigo-100 text-indigo-700 p-2 rounded-lg font-bold"></span>
+            </p>
+        </div>
+
+        <!-- Sección de Nuevo Registro de Entrega (Check-out Form) -->
+        <div id="checkout-section" class="card mb-12">
+            <h2 class="text-2xl font-bold text-indigo-700 mb-4 pb-2 border-b border-indigo-100">1. Registrar Entrega de Llave</h2>
+            
+            <form id="checkout-form" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Nombre de Usuario (SELECT) -->
+                    <div>
+                        <label for="userName" class="block text-sm font-medium text-gray-700">Nombre de Usuario que Solicita</label>
+                        <select id="userName" name="userName" required class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white">
+                            <option value="">-- Seleccione Usuario --</option>
+                            <option value="Rafael Ramos">Rafael Ramos</option>
+                            <option value="José Guevara">José Guevara</option>
+                            <option value="Ariel Bernal">Ariel Bernal</option>
+                            <option value="Oriel Aizprua">Oriel Aizprua</option>
+                            <option value="Leandro Pérez">Leandro Pérez</option>
+                            <option value="Samuel Reyes">Samuel Reyes</option>
+                        </select>
+                    </div>
+
+                    <!-- Llave que Solicita (SELECT: Deposito, Contenedor) -->
+                    <div>
+                        <label for="keyRequested" class="block text-sm font-medium text-gray-700">Llave/Activo Solicitado</label>
+                        <select id="keyRequested" name="keyRequested" required class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white">
+                            <option value="">-- Seleccione Activo --</option>
+                            <option value="Deposito">Deposito</option>
+                            <option value="Contenedor">Contenedor</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Departamento (SELECT: Rimith, Nevera, Panadería, Estantería, Sanidad, Recibo) -->
+                <div>
+                    <label for="checkoutLocation" class="block text-sm font-medium text-gray-700">Departamento</label>
+                    <select id="checkoutLocation" name="checkoutLocation" required class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white">
+                        <option value="">-- Seleccione Departamento --</option>
+                        <option value="Rimith">Rimith</option>
+                        <option value="Nevera">Nevera</option>
+                        <option value="Panaderia">Panadería</option>
+                        <option value="Estanteria">Estantería</option>
+                        <option value="Sanidad">Sanidad</option>
+                        <option value="Recibo">Recibo</option>
+                    </select>
+                </div>
+                
+                <!-- Observación (Entrega) -->
+                <div>
+                    <label for="checkoutObservation" class="block text-sm font-medium text-gray-700">Observación (Opcional)</label>
+                    <textarea id="checkoutObservation" name="checkoutObservation" rows="2" class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                </div>
+
+                <!-- Botón de Enviar -->
+                <button type="submit" id="checkout-submit-btn" class="btn-primary w-full mt-6">
+                    <span id="submit-text">Registrar Entrega</span>
+                    <span id="submit-loading" class="hidden flex items-center justify-center">
+                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        Guardando...
+                    </span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Sección de Llaves Pendientes (Checked-out Keys List) -->
+        <div id="pending-section" class="card">
+            <h2 class="text-2xl font-bold text-indigo-700 mb-6 pb-2 border-b border-indigo-100">2. Llaves Pendientes de Devolución</h2>
+            
+            <div id="key-list-container">
+                <div id="key-list-loading" class="text-center py-8 text-gray-500">
+                    <svg class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"></svg>
+                    Cargando historial de llaves...
+                </div>
+                <div id="pending-keys-list" class="space-y-4">
+                    <!-- Las tarjetas de llaves pendientes se insertarán aquí -->
+                </div>
+                <div id="key-list-empty" class="hidden text-center py-8 text-gray-500">
+                    <p class="text-lg">🎉 ¡Todas las llaves han sido devueltas! No hay registros pendientes.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Confirmación de Devolución -->
+        <div id="return-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden items-center justify-center p-4 z-50">
+            <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
+                <h3 class="text-xl font-bold mb-4 text-indigo-700 border-b pb-2">Confirmar Devolución (RETORNA)</h3>
+                <p class="text-gray-600 mb-4">Confirmar devolución de: <strong id="modal-key-name" class="text-indigo-600 font-extrabold"></strong>.</p>
+                <p class="text-gray-500 text-sm mb-4">Solicitada por: <span id="modal-user-name" class="font-semibold"></span></p>
+                
+                <form id="return-form" class="space-y-4">
+                    <!-- Departamento de Devolución (SELECT: Rimith, Nevera, Panadería, Estantería, Sanidad, Recibo) -->
+                    <div>
+                        <label for="returnLocation" class="block text-sm font-medium text-gray-700">Departamento de Devolución</label>
+                        <select id="returnLocation" name="returnLocation" required class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-green-500 focus:border-green-500 appearance-none bg-white">
+                            <option value="">-- Seleccione Departamento --</option>
+                            <option value="Rimith">Rimith</option>
+                            <option value="Nevera">Nevera</option>
+                            <option value="Panaderia">Panadería</option>
+                            <option value="Estanteria">Estantería</option>
+                            <option value="Sanidad">Sanidad</option>
+                            <option value="Recibo">Recibo</option>
+                        </select>
+                    </div>
+
+                    <!-- Observación (Devolución) -->
+                    <div>
+                        <label for="returnObservation" class="block text-sm font-medium text-gray-700">Observación de Devolución (Opcional)</label>
+                        <textarea id="returnObservation" name="returnObservation" rows="2" class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-green-500 focus:border-green-500"></textarea>
+                    </div>
+
+                    <div class="flex justify-end space-x-3 pt-2">
+                        <button type="button" onclick="closeReturnModal()" class="px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-xl hover:bg-gray-300 transition-colors duration-200">Cancelar</button>
+                        <button type="submit" id="confirm-return-btn" class="btn-success">
+                            <span id="return-submit-text">Confirmar Devolución</span>
+                            <span id="return-submit-loading" class="hidden flex items-center justify-center">
+                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                Procesando...
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- Lógica JavaScript para Auth, localStorage y PDF -->
+    <script>
+        const STORAGE_KEY = 'keyControlLogs';
+        const SESSION_KEY = 'currentSecurityId';
+        
+        // --- Nombres de Guardia de Seguridad y sus credenciales ---
+        // CLAVE: Las claves del objeto son los nombres de los guardias.
+        // ID: Usado internamente para registrar quién hizo la entrega/devolución.
+        const VALID_USERS = {
+            'Rafael Ramos': { password: 'clave123', id: 'RR' },
+            'José Guevara': { password: 'clave123', id: 'JG' },
+            'Ariel Bernal': { password: 'clave123', id: 'AB' },
+            'Oriel Aizprua': { password: 'clave123', id: 'OA' },
+            'Leandro Pérez': { password: 'clave123', id: 'LP' },
+            'Samuel Reyes': { password: 'clave123', id: 'SR' }
+        };
+        
+        let securityId = null; // ID del guardia actualmente logueado
+
+        // --- 1. AUTHENTICATION FUNCTIONS ---
+
+        function updateUIForLogin(id) {
+            securityId = id;
+            document.getElementById('security-id').textContent = id;
+            document.getElementById('main-app-content').classList.remove('hidden');
+            document.getElementById('login-modal').classList.add('hidden');
+            renderKeyList(); // Cargar la lista solo después de iniciar sesión
+        }
+        
+        function handleLogin(e) {
+            e.preventDefault();
+            
+            // Ahora 'username' es el nombre seleccionado del guardia
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const errorDiv = document.getElementById('login-error');
+
+            // La validación busca el nombre seleccionado como clave en VALID_USERS
+            if (VALID_USERS[username] && VALID_USERS[username].password === password) {
+                // Login exitoso
+                sessionStorage.setItem(SESSION_KEY, VALID_USERS[username].id);
+                updateUIForLogin(VALID_USERS[username].id);
+                errorDiv.classList.add('hidden');
+                showMessage(`Bienvenido, ${username}! (ID: ${VALID_USERS[username].id})`, 'success');
+            } else {
+                // Login fallido
+                errorDiv.classList.remove('hidden');
+            }
+        }
+
+        window.handleLogout = function() {
+            sessionStorage.removeItem(SESSION_KEY);
+            securityId = null;
+            document.getElementById('main-app-content').classList.add('hidden');
+            document.getElementById('login-modal').classList.remove('hidden');
+            showMessage("Sesión cerrada correctamente.", 'info');
+        }
+
+        function checkLoginStatus() {
+            const storedId = sessionStorage.getItem(SESSION_KEY);
+            // Busca si el ID almacenado coincide con alguno de los IDs de los guardias válidos
+            if (storedId && Object.values(VALID_USERS).some(user => user.id === storedId)) {
+                // Usuario válido logueado en la sesión
+                updateUIForLogin(storedId);
+            } else {
+                // No logueado, mostrar modal
+                document.getElementById('login-modal').classList.remove('hidden');
+                document.getElementById('main-app-content').classList.add('hidden');
+            }
+        }
+
+
+        // --- 2. UTILITY FUNCTIONS (Mantienen la funcionalidad de logs) ---
+
+        // Genera un ID único (UUID)
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        // Carga los registros desde localStorage
+        function loadLogs() {
+            try {
+                const json = localStorage.getItem(STORAGE_KEY);
+                return json ? JSON.parse(json) : [];
+            } catch (error) {
+                console.error("Error al cargar logs de localStorage:", error);
+                return [];
+            }
+        }
+
+        // Guarda los registros en localStorage
+        function saveLogs(logs) {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
+            } catch (error) {
+                console.error("Error al guardar logs en localStorage:", error);
+                showMessage("Error al guardar datos. El almacenamiento local está lleno.", 'error');
+            }
+        }
+
+        // Formato de fecha para la UI
+        function formatTimestamp(timestamp) {
+            if (!timestamp) return 'N/A';
+            const date = new Date(timestamp);
+            const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+            const timeOptions = { hour: '2-digit', minute: '2-digit' };
+            
+            return `${date.toLocaleDateString('es-ES', dateOptions)} ${date.toLocaleTimeString('es-ES', timeOptions)}`;
+        }
+
+        // Muestra mensajes de estado (reemplaza alert/confirm)
+        function showMessage(message, type = 'info') {
+            const container = document.getElementById('message-container');
+            let bgColor = 'bg-blue-100 border-blue-400 text-blue-700';
+            let icon = 'ℹ️';
+            if (type === 'error') { bgColor = 'bg-red-100 border-red-400 text-red-700'; icon = '❌'; }
+            if (type === 'success') { bgColor = 'bg-green-100 border-green-400 text-green-700'; icon = '✅'; }
+
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `p-4 rounded-xl shadow-lg border ${bgColor} mb-4 flex items-center space-x-3 transition-opacity duration-300`;
+            msgDiv.innerHTML = `<span class="text-2xl">${icon}</span><p class="font-medium">${message}</p>`;
+
+            container.innerHTML = '';
+            container.appendChild(msgDiv);
+            
+            setTimeout(() => {
+                msgDiv.classList.add('opacity-0');
+                msgDiv.addEventListener('transitionend', () => msgDiv.remove());
+            }, 5000);
+        }
+        
+        // Retorna el timestamp de inicio del día actual (00:00:00.000)
+        function getStartOfToday() {
+            const now = new Date();
+            now.setHours(0, 0, 0, 0);
+            return now.getTime();
+        }
+
+        // --- 3. INITIALIZATION AND UI SETUP ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Adjuntar event listeners a los formularios
+            document.getElementById('checkout-form').addEventListener('submit', handleCheckout);
+            document.getElementById('return-form').addEventListener('submit', handleReturn);
+            document.getElementById('login-form').addEventListener('submit', handleLogin);
+
+            // Verificar estado de la sesión al cargar
+            checkLoginStatus();
+
+            // Ocultar el indicador de carga inicial (si el login fue exitoso, se ejecuta renderKeyList)
+            document.getElementById('key-list-loading').classList.add('hidden');
+        });
+
+
+        // --- 4. REGISTRAR ENTREGA DE LLAVE (CHECKOUT) ---
+        async function handleCheckout(e) {
+            e.preventDefault();
+            
+            if (!securityId) {
+                showMessage("Debe iniciar sesión para registrar una entrega.", 'error');
+                return;
+            }
+
+            const submitText = document.getElementById('submit-text');
+            const submitLoading = document.getElementById('submit-loading');
+            const checkoutSubmitBtn = document.getElementById('checkout-submit-btn');
+
+            checkoutSubmitBtn.disabled = true;
+            submitText.classList.add('hidden');
+            submitLoading.classList.remove('hidden');
+
+            const formData = new FormData(e.target);
+            const newLog = {
+                id: generateUUID(), // ID único para este registro
+                userName: formData.get('userName').trim(), // Nombre de quien solicita
+                keyRequested: formData.get('keyRequested').trim(), 
+                checkoutLocation: formData.get('checkoutLocation'), 
+                checkoutObservation: formData.get('checkoutObservation').trim() || 'N/A',
+                isReturned: false, 
+                
+                checkoutTime: Date.now(), // Hora de salida (timestamp)
+                checkoutUserId: securityId, // Usamos el ID del guardia logueado
+            };
+
+            // 1. Cargar logs existentes
+            const logs = loadLogs();
+            
+            // 2. Añadir el nuevo log
+            logs.push(newLog);
+            
+            // 3. Guardar y re-renderizar
+            saveLogs(logs);
+            renderKeyList();
+
+            showMessage("Entrega de llave registrada con éxito.", 'success');
+            e.target.reset(); // Limpiar el formulario
+
+            checkoutSubmitBtn.disabled = false;
+            submitText.classList.remove('hidden');
+            submitLoading.classList.add('hidden');
+        }
+
+
+        // --- 5. RENDERIZAR LISTA DE LLAVES PENDIENTES ---
+        function renderKeyList() {
+            const logs = loadLogs();
+            const pendingKeys = logs.filter(log => !log.isReturned);
+
+            // Ordenar: Mostrar los registros más antiguos (más tiempo fuera) primero
+            pendingKeys.sort((a, b) => a.checkoutTime - b.checkoutTime);
+
+            const pendingKeysList = document.getElementById('pending-keys-list');
+            const keyListEmpty = document.getElementById('key-list-empty');
+            
+            pendingKeysList.innerHTML = ''; 
+
+            if (pendingKeys.length === 0) {
+                keyListEmpty.classList.remove('hidden');
+                return;
+            }
+
+            keyListEmpty.classList.add('hidden');
+
+            pendingKeys.forEach(key => {
+                const checkoutTimeFormatted = formatTimestamp(key.checkoutTime);
+                
+                const keyCard = document.createElement('div');
+                keyCard.className = 'card bg-yellow-50 border-yellow-300 shadow-md flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0 p-4';
+                keyCard.innerHTML = `
+                    <div class="flex-1 w-full">
+                        <p class="text-xl font-extrabold text-indigo-800">${key.keyRequested}</p>
+                        <p class="text-sm text-gray-700 mb-1">
+                            <span class="font-bold">Solicita:</span> ${key.userName} 
+                            <span class="text-xs text-gray-500 ml-2">(${key.checkoutLocation})</span>
+                        </p>
+                        <p class="text-xs text-gray-500 mt-1">
+                            <span class="font-bold text-indigo-500">ENTREGA:</span> ${checkoutTimeFormatted} 
+                            <span class="text-gray-400">por ${key.checkoutUserId}</span>
+                        </p>
+                        <p class="text-xs text-gray-500 italic mt-0.5">Obs: ${key.checkoutObservation}</p>
+                    </div>
+                    <button data-id="${key.id}" data-key="${key.keyRequested}" data-user="${key.userName}" 
+                            class="btn-success w-full sm:w-auto log-return-btn text-sm">
+                        RETORNA
+                    </button>
+                `;
+                pendingKeysList.appendChild(keyCard);
+            });
+            
+            // Adjuntar listeners para los botones de devolución
+            document.querySelectorAll('.log-return-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const docId = e.currentTarget.getAttribute('data-id');
+                    const keyName = e.currentTarget.getAttribute('data-key');
+                    const userName = e.currentTarget.getAttribute('data-user');
+                    openReturnModal(docId, keyName, userName);
+                });
+            });
+        }
+
+        // --- 6. GESTIÓN DEL MODAL Y DEVOLUCIÓN ---
+        const returnModal = document.getElementById('return-modal');
+        const modalKeyName = document.getElementById('modal-key-name');
+        const modalUserName = document.getElementById('modal-user-name');
+        let currentEditingDocId = null;
+
+        window.openReturnModal = (docId, keyName, userName) => {
+            currentEditingDocId = docId;
+            modalKeyName.textContent = keyName;
+            modalUserName.textContent = userName;
+            returnModal.classList.remove('hidden');
+            returnModal.classList.add('flex');
+            
+            document.getElementById('return-form').reset();
+            document.getElementById('returnLocation').focus();
+        }
+
+        window.closeReturnModal = () => {
+            currentEditingDocId = null;
+            returnModal.classList.add('hidden');
+            returnModal.classList.remove('flex');
+        }
+
+        // --- 7. REGISTRAR DEVOLUCIÓN DE LLAVE (RETURN) ---
+        async function handleReturn(e) {
+            e.preventDefault();
+
+            if (!securityId) {
+                showMessage("Debe iniciar sesión para registrar una devolución.", 'error');
+                closeReturnModal();
+                return;
+            }
+
+            if (!currentEditingDocId) {
+                showMessage("Error: ID de registro no encontrado.", 'error');
+                closeReturnModal();
+                return;
+            }
+
+            const returnSubmitText = document.getElementById('return-submit-text');
+            const returnSubmitLoading = document.getElementById('return-submit-loading');
+            const confirmReturnBtn = document.getElementById('confirm-return-btn');
+
+            confirmReturnBtn.disabled = true;
+            returnSubmitText.classList.add('hidden');
+            returnSubmitLoading.classList.remove('hidden');
+            
+            const formData = new FormData(e.target);
+            const returnData = {
+                isReturned: true,
+                returnTime: Date.now(), 
+                returnLocation: formData.get('returnLocation'), 
+                returnObservation: formData.get('returnObservation').trim() || 'N/A',
+                returnUserId: securityId, // Usamos el ID del guardia logueado
+            };
+            
+            // 1. Cargar todos los logs
+            const logs = loadLogs();
+            
+            // 2. Encontrar y actualizar el log
+            const logIndex = logs.findIndex(log => log.id === currentEditingDocId);
+            
+            if (logIndex !== -1) {
+                // Actualizar las propiedades del registro con los datos de devolución
+                logs[logIndex] = { ...logs[logIndex], ...returnData };
+
+                // 3. Guardar y re-renderizar
+                saveLogs(logs);
+                renderKeyList();
+
+                showMessage("Devolución de llave registrada con éxito.", 'success');
+            } else {
+                showMessage("Error: El registro a devolver no fue encontrado.", 'error');
+            }
+            
+            closeReturnModal();
+            confirmReturnBtn.disabled = false;
+            returnSubmitText.classList.remove('hidden');
+            returnSubmitLoading.classList.add('hidden');
+        }
+
+
+        // --- 8. GENERACIÓN DE REPORTE DIARIO (PDF) ---
+        window.generateDailyReportPdf = function() {
+            if (!securityId) {
+                showMessage("Debe iniciar sesión para generar el reporte.", 'error');
+                return;
+            }
+            
+            // Asegurarse de que jsPDF esté cargado
+            if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
+                showMessage("Error: La librería de PDF no está cargada correctamente.", 'error');
+                return;
+            }
+
+            const logs = loadLogs();
+            const startOfToday = getStartOfToday();
+            // Filtrar registros cuya hora de salida (checkoutTime) es igual o posterior al inicio de hoy
+            const todayLogs = logs.filter(log => log.checkoutTime >= startOfToday);
+
+            if (todayLogs.length === 0) {
+                showMessage("No hay registros de entrega para el día de hoy para generar el reporte.", 'info');
+                return;
+            }
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4'); // A4 vertical
+            let y = 10;
+            const margin = 10;
+            const pageWidth = doc.internal.pageSize.getWidth();
+
+            // Título y Fecha
+            doc.setFontSize(18);
+            doc.text("Reporte Diario de Control de Activos", pageWidth / 2, y, { align: 'center' });
+            y += 8;
+
+            const todayDate = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+            doc.setFontSize(12);
+            doc.text(`Fecha del Reporte: ${todayDate}`, margin, y);
+            y += 6;
+            
+            doc.setFontSize(10);
+            doc.text(`Generado por ID de Seguridad: ${securityId}`, margin, y);
+            y += 8;
+
+            // CABECERA DE LA TABLA
+            doc.setFontSize(9);
+            doc.setFillColor(200, 200, 220); 
+            doc.rect(margin, y, pageWidth - 2 * margin, 7, 'F'); 
+
+            // Definición de columnas y sus anchos (suman 190 mm, el ancho útil de A4)
+            const cols = [
+                { title: "Activo", width: 20 },
+                { title: "Usuario", width: 30 },
+                { title: "Depto (ENTREGA)", width: 25 }, 
+                { title: "ID Guardia (ENTREGA)", width: 20 },
+                { title: "Hora ENTREGA", width: 20 },
+                { title: "Estado", width: 20 },
+                { title: "ID Guardia (RETORNA)", width: 20 },
+                { title: "Hora RETORNA", width: 25 },
+                { title: "Obs. (ENTREGA)", width: 10 } // Reducido para que quepa todo
+            ];
+            
+            let currentX = margin;
+            doc.setFont(doc.getFont().fontName, 'bold');
+            cols.forEach(col => {
+                doc.text(col.title, currentX + 1, y + 5);
+                currentX += col.width;
+            });
+            doc.setFont(doc.getFont().fontName, 'normal');
+            y += 7; 
+
+            // DATOS DE LA TABLA
+            doc.setFontSize(8);
+            
+            todayLogs.forEach((log, index) => {
+                // Salto de página
+                if (y > doc.internal.pageSize.getHeight() - margin * 2) {
+                    doc.addPage();
+                    y = margin;
+                    // Opcional: repetir cabecera en nueva página (omitido por simplicidad)
+                }
+
+                const bgColor = index % 2 === 0 ? 240 : 255; 
+                doc.setFillColor(bgColor, bgColor, bgColor);
+                doc.rect(margin, y, pageWidth - 2 * margin, 6, 'F'); 
+
+                const saleTime = new Date(log.checkoutTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                const returnTime = log.isReturned ? new Date(log.returnTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : 'N/A';
+                const status = log.isReturned ? 'DEVUELTO' : 'PENDIENTE';
+                
+                const data = [
+                    log.keyRequested,
+                    log.userName,
+                    log.checkoutLocation,
+                    log.checkoutUserId || 'N/A', // Nuevo campo
+                    saleTime,
+                    status,
+                    log.returnUserId || 'N/A', // Nuevo campo
+                    returnTime,
+                    log.checkoutObservation
+                ];
+                
+                currentX = margin; 
+                data.forEach((text, i) => {
+                    // Truncamiento simple para asegurar que quepa
+                    let maxText = text;
+                    if (cols[i].width < 25 && text.length > 10) {
+                        maxText = text.substring(0, 7) + '...';
+                    } else if (text.length > 20) {
+                        maxText = text.substring(0, 17) + '...';
+                    }
+                    doc.text(maxText, currentX + 1, y + 4);
+                    currentX += cols[i].width;
+                });
+                
+                y += 6; 
+            });
+
+            // Guardar el PDF
+            const filename = `Reporte_ControlActivos_${new Date().toISOString().slice(0, 10)}.pdf`;
+            doc.save(filename);
+            
+            showMessage(`PDF de reporte diario generado y descargado: ${filename}`, 'success');
+        }
+
+    </script>
+</body>
+</html>
+
