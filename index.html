@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control de Llaves - Local</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script> 
     <link rel="manifest" href="manifest.json">
-    
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
         body {
@@ -40,7 +40,7 @@
         <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm transform transition-transform duration-500 ease-out">
             <h3 class="text-3xl font-extrabold mb-4 text-indigo-700 text-center">Acceso de Seguridad</h3>
             <p class="text-gray-600 mb-6 text-center">Seleccione su nombre e ingrese su contraseña.</p>
-            
+
             <form id="login-form" class="space-y-4">
                 <div>
                     <label for="username" class="block text-sm font-medium text-gray-700">Nombre de Guardia de Seguridad</label>
@@ -55,7 +55,7 @@
                         <option value="Samuel Reyes">Samuel Reyes</option>
                     </select>
                 </div>
-                
+
                 <div>
                     <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
                     <input type="password" id="password" name="password" required 
@@ -97,7 +97,7 @@
 
         <div id="checkout-section" class="card mb-12">
             <h2 class="text-2xl font-bold text-indigo-700 mb-4 pb-2 border-b border-indigo-100">1. Registrar Entrega de Llave</h2>
-            
+
             <form id="checkout-form" class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -135,7 +135,7 @@
                         <option value="Recibo">Recibo</option>
                     </select>
                 </div>
-                
+
                 <div>
                     <label for="checkoutObservation" class="block text-sm font-medium text-gray-700">Observación (Opcional)</label>
                     <textarea id="checkoutObservation" name="checkoutObservation" rows="2" class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
@@ -153,7 +153,7 @@
 
         <div id="pending-section" class="card">
             <h2 class="text-2xl font-bold text-indigo-700 mb-6 pb-2 border-b border-indigo-100">2. Llaves Pendientes de Devolución</h2>
-            
+
             <div id="key-list-container">
                 <div id="key-list-loading" class="text-center py-8 text-gray-500">
                     <svg class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"></svg>
@@ -172,7 +172,7 @@
                 <h3 class="text-xl font-bold mb-4 text-indigo-700 border-b pb-2">Confirmar Devolución (RETORNA)</h3>
                 <p class="text-gray-600 mb-4">Confirmar devolución de: <strong id="modal-key-name" class="text-indigo-600 font-extrabold"></strong>.</p>
                 <p class="text-gray-500 text-sm mb-4">Solicitada por: <span id="modal-user-name" class="font-semibold"></span></p>
-                
+
                 <form id="return-form" class="space-y-4">
                     <div>
                         <label for="returnLocation" class="block text-sm font-medium text-gray-700">Departamento de Devolución</label>
@@ -205,13 +205,13 @@
                 </form>
             </div>
         </div>
-        
+
     </div>
 
     <script>
         const STORAGE_KEY = 'keyControlLogs';
         const SESSION_KEY = 'currentSecurityId';
-        
+
         // --- Nombres de Guardia de Seguridad y sus credenciales ---
         // CLAVE: Las claves del objeto son los nombres de los guardias.
         // ID: Usado internamente para registrar quién hizo la entrega/devolución.
@@ -223,7 +223,7 @@
             'Leandro Pérez': { password: 'clave123', id: 'LP' },
             'Samuel Reyes': { password: 'clave123', id: 'SR' }
         };
-        
+
         let securityId = null; // ID del guardia actualmente logueado
 
         // --- 1. AUTHENTICATION FUNCTIONS ---
@@ -235,10 +235,10 @@
             document.getElementById('login-modal').classList.add('hidden');
             renderKeyList(); // Cargar la lista solo después de iniciar sesión
         }
-        
+
         function handleLogin(e) {
             e.preventDefault();
-            
+
             // Ahora 'username' es el nombre seleccionado del guardia
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value.trim();
@@ -316,8 +316,15 @@
             const date = new Date(timestamp);
             const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
             const timeOptions = { hour: '2-digit', minute: '2-digit' };
-            
+
             return `${date.toLocaleDateString('es-ES', dateOptions)} ${date.toLocaleTimeString('es-ES', timeOptions)}`;
+        }
+        
+        // Formato de hora para el PDF (ejemplo 14:30)
+        function formatTimeForPdf(timestamp) {
+            if (!timestamp) return 'N/A';
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
         }
 
         // Muestra mensajes de estado (reemplaza alert/confirm)
@@ -334,13 +341,13 @@
 
             container.innerHTML = '';
             container.appendChild(msgDiv);
-            
+
             setTimeout(() => {
                 msgDiv.classList.add('opacity-0');
                 msgDiv.addEventListener('transitionend', () => msgDiv.remove());
             }, 5000);
         }
-        
+
         // Retorna el timestamp de inicio del día actual (00:00:00.000)
         function getStartOfToday() {
             const now = new Date();
@@ -367,7 +374,7 @@
         // --- 4. REGISTRAR ENTREGA DE LLAVE (CHECKOUT) ---
         async function handleCheckout(e) {
             e.preventDefault();
-            
+
             if (!securityId) {
                 showMessage("Debe iniciar sesión para registrar una entrega.", 'error');
                 return;
@@ -389,17 +396,17 @@
                 checkoutLocation: formData.get('checkoutLocation'), 
                 checkoutObservation: formData.get('checkoutObservation').trim() || 'N/A',
                 isReturned: false, 
-                
+
                 checkoutTime: Date.now(), // Hora de salida (timestamp)
                 checkoutUserId: securityId, // Usamos el ID del guardia logueado
             };
 
             // 1. Cargar logs existentes
             const logs = loadLogs();
-            
+
             // 2. Añadir el nuevo log
             logs.push(newLog);
-            
+
             // 3. Guardar y re-renderizar
             saveLogs(logs);
             renderKeyList();
@@ -423,7 +430,7 @@
 
             const pendingKeysList = document.getElementById('pending-keys-list');
             const keyListEmpty = document.getElementById('key-list-empty');
-            
+
             pendingKeysList.innerHTML = ''; 
 
             if (pendingKeys.length === 0) {
@@ -435,7 +442,7 @@
 
             pendingKeys.forEach(key => {
                 const checkoutTimeFormatted = formatTimestamp(key.checkoutTime);
-                
+
                 const keyCard = document.createElement('div');
                 keyCard.className = 'card bg-yellow-50 border-yellow-300 shadow-md flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0 p-4';
                 keyCard.innerHTML = `
@@ -458,7 +465,7 @@
                 `;
                 pendingKeysList.appendChild(keyCard);
             });
-            
+
             // Adjuntar listeners para los botones de devolución
             document.querySelectorAll('.log-return-btn').forEach(button => {
                 button.addEventListener('click', (e) => {
@@ -482,7 +489,7 @@
             modalUserName.textContent = userName;
             returnModal.classList.remove('hidden');
             returnModal.classList.add('flex');
-            
+
             document.getElementById('return-form').reset();
             document.getElementById('returnLocation').focus();
         }
@@ -516,7 +523,7 @@
             confirmReturnBtn.disabled = true;
             returnSubmitText.classList.add('hidden');
             returnSubmitLoading.classList.remove('hidden');
-            
+
             const formData = new FormData(e.target);
             const returnData = {
                 isReturned: true,
@@ -525,13 +532,13 @@
                 returnObservation: formData.get('returnObservation').trim() || 'N/A',
                 returnUserId: securityId, // Usamos el ID del guardia logueado
             };
-            
+
             // 1. Cargar todos los logs
             const logs = loadLogs();
-            
+
             // 2. Encontrar y actualizar el log
             const logIndex = logs.findIndex(log => log.id === currentEditingDocId);
-            
+
             if (logIndex !== -1) {
                 // Actualizar las propiedades del registro con los datos de devolución
                 logs[logIndex] = { ...logs[logIndex], ...returnData };
@@ -544,7 +551,7 @@
             } else {
                 showMessage("Error: El registro a devolver no fue encontrado.", 'error');
             }
-            
+
             closeReturnModal();
             confirmReturnBtn.disabled = false;
             returnSubmitText.classList.remove('hidden');
@@ -552,14 +559,53 @@
         }
 
 
-        // --- 8. GENERACIÓN DE REPORTE DIARIO (PDF) - VERSIÓN ESTÉTICA CON autoTable ---
+        // ******************************************************************
+        // ************ FUNCIÓN DE EXPORTACIÓN CON jsPDF.autoTable() *********
+        // ************ ADAPTADA DEL CÓDIGO 1 ********************************
+        // ******************************************************************
+
+        // Función auxiliar para añadir el encabezado y pie de página, similar al Código 1
+        function addReportHeaderAndFooter(doc, pageWidth, margin) {
+            const pageHeight = doc.internal.pageSize.height;
+            let yPos = 15;
+
+            // TÍTULOS
+            doc.setFontSize(16).setFont('helvetica', 'bold');
+            doc.setTextColor(44, 62, 80); // Color principal
+            doc.text("GRUPO RIBA SMITH", pageWidth / 2, yPos, { align: 'center' });
+            yPos += 6;
+            doc.setFontSize(12).setFont('helvetica', 'normal');
+            doc.text("R/S CHITRÉ SELECTO", pageWidth / 2, yPos, { align: 'center' });
+            yPos += 5;
+
+            doc.setFontSize(14).setFont('helvetica', 'bold');
+            doc.setTextColor(52, 152, 219); // Color Accent
+            doc.text("REPORTE DIARIO DE CONTROL DE ACTIVOS", pageWidth / 2, yPos, { align: 'center' });
+            yPos += 8;
+
+            // INFORMACIÓN DE FECHA Y USUARIO
+            const todayDate = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            doc.setFontSize(10).setFont('helvetica', 'normal');
+            doc.setTextColor(75, 85, 99); // Gris
+            doc.text(`Fecha del Reporte: ${todayDate}`, margin, yPos);
+            doc.text(`Generado por ID de Seguridad: ${securityId}`, pageWidth - margin, yPos, { align: 'right' });
+            yPos += 5;
+
+            // PIE DE PÁGINA
+            doc.setFontSize(8).setFont('helvetica', 'normal');
+            doc.setTextColor(107, 114, 128); // Gris oscuro
+            const footerText = 'Powered by Rafael Ramos | Página ' + doc.internal.getNumberOfPages();
+            doc.text(footerText, pageWidth / 2, pageHeight - 5, { align: 'center' });
+            
+            return yPos + 3; // Retorna la posición de inicio para la tabla
+        }
+
         window.generateDailyReportPdf = function() {
             if (!securityId) {
                 showMessage("Debe iniciar sesión para generar el reporte.", 'error');
                 return;
             }
-            
-            // Verificación del plugin (Ahora debería funcionar)
+
             if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined' || typeof window.jspdf.jsPDF.prototype.autoTable === 'undefined') {
                 showMessage("Error: La librería jsPDF y el plugin autoTable no están cargados correctamente. Verifique la conexión a internet.", 'error');
                 return;
@@ -567,135 +613,117 @@
 
             const logs = loadLogs();
             const startOfToday = getStartOfToday();
-            const todayLogs = logs.filter(log => log.checkoutTime >= startOfToday);
+            // Filtra los logs de hoy y ordena por hora de entrega
+            const todayLogs = logs.filter(log => log.checkoutTime >= startOfToday)
+                                  .sort((a, b) => a.checkoutTime - b.checkoutTime);
 
             if (todayLogs.length === 0) {
                 showMessage("No hay registros de entrega para el día de hoy para generar el reporte.", 'info');
                 return;
             }
-            
+
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'mm', 'a4'); 
-            let y = 10;
             const margin = 10;
             const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
 
-            // 1. TÍTULO Y ENCABEZADO
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(22);
-            doc.setTextColor(67, 56, 202); // Índigo oscuro
-            doc.text("Reporte Diario de Control de Activos", pageWidth / 2, y, { align: 'center' });
-            y += 10;
+            let currentY = addReportHeaderAndFooter(doc, pageWidth, margin);
 
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor(75, 85, 99); // Gris
-
-            const todayDate = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            doc.text(`Fecha del Reporte: ${todayDate}`, margin, y);
-            y += 6;
-            
-            doc.text(`Generado por ID de Seguridad: ${securityId}`, margin, y);
-            y += 8;
-
-            // 2. PREPARACIÓN DE DATOS PARA autoTable
-            
             // Definición de las columnas (Headers)
-            const head = [
-                [
-                    "Activo", 
-                    "Usuario", 
-                    "Depto (ENT)", 
-                    "ID Ent",
-                    "Hora Ent",
-                    "Estado",
-                    "ID Ret",
-                    "Hora Ret",
-                    "Obs. (ENTREGA)"
-                ]
+            const headers = [
+                "Activo", 
+                "Usuario", 
+                "Depto (ENT)", 
+                "ID Ent",
+                "Hora Ent",
+                "Estado",
+                "ID Ret",
+                "Hora Ret",
+                "Obs. (ENTREGA)",
+                "Obs. (RETORNA)"
             ];
-            
+
             // Mapeo de los datos para las filas
             const body = todayLogs.map(log => {
-                const saleTime = new Date(log.checkoutTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-                const returnTime = log.isReturned ? new Date(log.returnTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : 'N/A';
+                const hourEnt = formatTimeForPdf(log.checkoutTime);
+                const hourRet = log.isReturned ? formatTimeForPdf(log.returnTime) : 'N/A';
                 const status = log.isReturned ? 'DEVUELTO' : 'PENDIENTE';
-                
-                // Truncamiento de Observación para la tabla (Aprox. 40 caracteres por ancho de autoTable)
-                let obsText = log.checkoutObservation || 'N/A';
-                if (obsText.length > 40) {
-                    obsText = obsText.substring(0, 37) + '...';
-                }
 
                 return [
-                    log.keyRequested,
-                    log.userName,
-                    log.checkoutLocation,
+                    log.keyRequested || 'N/A',
+                    log.userName || 'N/A',
+                    log.checkoutLocation || 'N/A',
                     log.checkoutUserId || 'N/A', 
-                    saleTime,
+                    hourEnt,
                     status,
                     log.returnUserId || 'N/A', 
-                    returnTime,
-                    obsText
+                    hourRet,
+                    log.checkoutObservation || 'N/A',
+                    log.returnObservation || 'N/A'
                 ];
             });
 
             // 3. GENERACIÓN DE LA TABLA CON ESTILO
             doc.autoTable({
-                startY: y + 2,
-                head: head,
+                startY: currentY,
+                head: [headers],
                 body: body,
-                theme: 'striped', // Un tema limpio y moderno
+                theme: 'striped', 
                 headStyles: { 
-                    fillColor: [67, 56, 202], // Fondo Índigo (Color de la app)
-                    textColor: 255, // Texto Blanco
+                    fillColor: [44, 62, 80], // Color principal del Código 1
+                    textColor: 255, 
                     fontStyle: 'bold',
                     fontSize: 8,
-                    halign: 'center' // Centrar encabezados
+                    halign: 'center' 
                 },
                 styles: {
                     fontSize: 7, 
                     cellPadding: 1, 
-                    overflow: 'linebreak' // Clave para evitar el solapamiento: rompe la línea si es muy larga
+                    overflow: 'linebreak' 
                 },
                 columnStyles: {
-                    0: { cellWidth: 15 }, // Activo
-                    1: { cellWidth: 25 }, // Usuario
-                    2: { cellWidth: 20 }, // Depto (ENT)
-                    3: { cellWidth: 10 }, // ID Ent
-                    4: { cellWidth: 12 }, // Hora Ent
-                    5: { cellWidth: 15, fontStyle: 'bold' }, // Estado
-                    6: { cellWidth: 10 }, // ID Ret
-                    7: { cellWidth: 12 }, // Hora Ret
-                    8: { cellWidth: 35 } // Obs. (ENTREGA) - Con buen espacio
+                    0: { cellWidth: 14, halign: 'center' }, // Activo
+                    1: { cellWidth: 20 }, // Usuario
+                    2: { cellWidth: 15 }, // Depto (ENT)
+                    3: { cellWidth: 10, halign: 'center' }, // ID Ent
+                    4: { cellWidth: 10, halign: 'center' }, // Hora Ent
+                    5: { cellWidth: 15, fontStyle: 'bold', halign: 'center' }, // Estado
+                    6: { cellWidth: 10, halign: 'center' }, // ID Ret
+                    7: { cellWidth: 10, halign: 'center' }, // Hora Ret
+                    8: { cellWidth: 35 }, // Obs. (ENTREGA)
+                    9: { cellWidth: 35 }  // Obs. (RETORNA)
                 },
+                margin: { left: margin, right: margin },
+
+                didDrawPage: (data) => {
+                    // Re-dibuja el encabezado y pie de página en cada nueva página
+                    addReportHeaderAndFooter(doc, pageWidth, margin);
+                },
+
                 didDrawCell: (data) => {
                     // Estilo condicional para la columna 'Estado'
                     if (data.column.index === 5 && data.cell.section === 'body') {
                         const status = data.cell.text[0];
                         if (status === 'PENDIENTE') {
-                            doc.setTextColor(234, 88, 12); // Naranja oscuro
+                            // Fondo de color de advertencia del Código 1 (Rojo/Danger)
+                            data.cell.styles.fillColor = [248, 215, 218];
+                            doc.setTextColor(234, 88, 12); // Naranja oscuro para el texto
                         } else if (status === 'DEVUELTO') {
-                            doc.setTextColor(22, 163, 74); // Verde oscuro
+                            // Fondo de color de éxito del Código 1 (Verde/Success)
+                            data.cell.styles.fillColor = [212, 237, 218]; 
+                            doc.setTextColor(22, 163, 74); // Verde oscuro para el texto
                         }
                     }
                 }
             });
 
-            // 4. Pie de página (Footer)
-            // Se actualizó para usar la hora de generación y evitar el contador de página (simplificado)
-            y = doc.autoTable.previous.finalY + 10;
-            doc.setFontSize(8);
-            doc.setTextColor(107, 114, 128);
-            doc.text(`Generado el ${new Date().toLocaleTimeString('es-ES')} | Control de Activos`, margin, doc.internal.pageSize.getHeight() - margin);
-
             // Guardar el PDF
             const filename = `Reporte_ControlActivos_${new Date().toISOString().slice(0, 10)}.pdf`;
             doc.save(filename);
-            
+
             showMessage(`PDF de reporte diario generado y descargado: ${filename}`, 'success');
         }
-
     </script>
 </body>
 </html>
