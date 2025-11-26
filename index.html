@@ -4,14 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control de Llaves - Local</title>
-    <!-- Carga de Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Carga de jsPDF para la generación de reportes PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- Referencia al Manifiesto de la PWA -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script> 
     <link rel="manifest" href="manifest.json">
     
-    <!-- Configuración de la fuente Inter y el estilo de Tailwind -->
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
         body {
@@ -38,7 +35,6 @@
 </head>
 <body>
 
-    <!-- MODAL DE INICIO DE SESIÓN (LOGIN) - CUBRE TODA LA PANTALLA INICIALMENTE -->
     <div id="login-modal" class="fixed inset-0 bg-indigo-900 bg-opacity-95 flex items-center justify-center p-4 z-50">
         <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm transform transition-transform duration-500 ease-out">
             <h3 class="text-3xl font-extrabold mb-4 text-indigo-700 text-center">Acceso de Seguridad</h3>
@@ -47,7 +43,6 @@
             <form id="login-form" class="space-y-4">
                 <div>
                     <label for="username" class="block text-sm font-medium text-gray-700">Nombre de Guardia de Seguridad</label>
-                    <!-- CAMBIO CLAVE: SELECT para el login -->
                     <select id="username" name="username" required 
                            class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white">
                         <option value="">-- Seleccione su Nombre --</option>
@@ -75,12 +70,8 @@
             </form>
         </div>
     </div>
-    <!-- FIN MODAL DE LOGIN -->
-
-
     <div id="main-app-content" class="app-container hidden">
 
-        <!-- Header -->
         <header class="text-center py-8 mb-4 bg-indigo-700 text-white rounded-b-3xl shadow-2xl flex justify-between items-center px-6">
             <h1 class="text-2xl md:text-4xl font-extrabold tracking-tight">Control de Activos</h1>
             <button id="logout-btn" onclick="handleLogout()" class="px-3 py-1.5 font-semibold text-xs bg-white text-indigo-700 rounded-lg hover:bg-gray-100 transition-colors">
@@ -88,7 +79,6 @@
             </button>
         </header>
 
-        <!-- Botón de Terminar Día / Reporte -->
         <div class="mb-6 flex justify-center">
             <button id="end-day-report-btn" onclick="generateDailyReportPdf()" class="btn-report flex items-center space-x-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"></path><line x1="10" y1="13" x2="14" y2="13"></line><line x1="12" y1="17" x2="12" y2="17"></line></svg>
@@ -96,7 +86,6 @@
             </button>
         </div>
 
-        <!-- Mensajes de Estado/Error -->
         <div id="message-container"></div>
         <div id="auth-status" class="mb-10 card text-sm">
             <p class="flex items-center justify-between">
@@ -105,13 +94,11 @@
             </p>
         </div>
 
-        <!-- Sección de Nuevo Registro de Entrega (Check-out Form) -->
         <div id="checkout-section" class="card mb-12">
             <h2 class="text-2xl font-bold text-indigo-700 mb-4 pb-2 border-b border-indigo-100">1. Registrar Entrega de Llave</h2>
             
             <form id="checkout-form" class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Nombre de Usuario (SELECT) -->
                     <div>
                         <label for="userName" class="block text-sm font-medium text-gray-700">Nombre de Usuario que Solicita</label>
                         <select id="userName" name="userName" required class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white">
@@ -125,7 +112,6 @@
                         </select>
                     </div>
 
-                    <!-- Llave que Solicita (SELECT: Deposito, Contenedor) -->
                     <div>
                         <label for="keyRequested" class="block text-sm font-medium text-gray-700">Llave/Activo Solicitado</label>
                         <select id="keyRequested" name="keyRequested" required class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white">
@@ -136,7 +122,6 @@
                     </div>
                 </div>
 
-                <!-- Departamento (SELECT: Rimith, Nevera, Panadería, Estantería, Sanidad, Recibo) -->
                 <div>
                     <label for="checkoutLocation" class="block text-sm font-medium text-gray-700">Departamento</label>
                     <select id="checkoutLocation" name="checkoutLocation" required class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white">
@@ -150,13 +135,11 @@
                     </select>
                 </div>
                 
-                <!-- Observación (Entrega) -->
                 <div>
                     <label for="checkoutObservation" class="block text-sm font-medium text-gray-700">Observación (Opcional)</label>
                     <textarea id="checkoutObservation" name="checkoutObservation" rows="2" class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
                 </div>
 
-                <!-- Botón de Enviar -->
                 <button type="submit" id="checkout-submit-btn" class="btn-primary w-full mt-6">
                     <span id="submit-text">Registrar Entrega</span>
                     <span id="submit-loading" class="hidden flex items-center justify-center">
@@ -167,7 +150,6 @@
             </form>
         </div>
 
-        <!-- Sección de Llaves Pendientes (Checked-out Keys List) -->
         <div id="pending-section" class="card">
             <h2 class="text-2xl font-bold text-indigo-700 mb-6 pb-2 border-b border-indigo-100">2. Llaves Pendientes de Devolución</h2>
             
@@ -177,15 +159,13 @@
                     Cargando historial de llaves...
                 </div>
                 <div id="pending-keys-list" class="space-y-4">
-                    <!-- Las tarjetas de llaves pendientes se insertarán aquí -->
-                </div>
+                    </div>
                 <div id="key-list-empty" class="hidden text-center py-8 text-gray-500">
                     <p class="text-lg">🎉 ¡Todas las llaves han sido devueltas! No hay registros pendientes.</p>
                 </div>
             </div>
         </div>
 
-        <!-- Modal de Confirmación de Devolución -->
         <div id="return-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden items-center justify-center p-4 z-50">
             <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
                 <h3 class="text-xl font-bold mb-4 text-indigo-700 border-b pb-2">Confirmar Devolución (RETORNA)</h3>
@@ -193,7 +173,6 @@
                 <p class="text-gray-500 text-sm mb-4">Solicitada por: <span id="modal-user-name" class="font-semibold"></span></p>
                 
                 <form id="return-form" class="space-y-4">
-                    <!-- Departamento de Devolución (SELECT: Rimith, Nevera, Panadería, Estantería, Sanidad, Recibo) -->
                     <div>
                         <label for="returnLocation" class="block text-sm font-medium text-gray-700">Departamento de Devolución</label>
                         <select id="returnLocation" name="returnLocation" required class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-green-500 focus:border-green-500 appearance-none bg-white">
@@ -207,7 +186,6 @@
                         </select>
                     </div>
 
-                    <!-- Observación (Devolución) -->
                     <div>
                         <label for="returnObservation" class="block text-sm font-medium text-gray-700">Observación de Devolución (Opcional)</label>
                         <textarea id="returnObservation" name="returnObservation" rows="2" class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-green-500 focus:border-green-500"></textarea>
@@ -229,7 +207,6 @@
         
     </div>
 
-    <!-- Lógica JavaScript para Auth, localStorage y PDF -->
     <script>
         const STORAGE_KEY = 'keyControlLogs';
         const SESSION_KEY = 'currentSecurityId';
@@ -574,22 +551,21 @@
         }
 
 
-        // --- 8. GENERACIÓN DE REPORTE DIARIO (PDF) ---
+        // --- 8. GENERACIÓN DE REPORTE DIARIO (PDF) - VERSIÓN ESTÉTICA CON autoTable ---
         window.generateDailyReportPdf = function() {
             if (!securityId) {
                 showMessage("Debe iniciar sesión para generar el reporte.", 'error');
                 return;
             }
             
-            // Asegurarse de que jsPDF esté cargado
-            if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
-                showMessage("Error: La librería de PDF no está cargada correctamente.", 'error');
+            // El plugin autoTable se cargó en el <head>
+            if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined' || typeof window.jspdf.jsPDF.prototype.autoTable === 'undefined') {
+                showMessage("Error: La librería jsPDF y el plugin autoTable no están cargados correctamente. Verifica los scripts en el <head>.", 'error');
                 return;
             }
 
             const logs = loadLogs();
             const startOfToday = getStartOfToday();
-            // Filtrar registros cuya hora de salida (checkoutTime) es igual o posterior al inicio de hoy
             const todayLogs = logs.filter(log => log.checkoutTime >= startOfToday);
 
             if (todayLogs.length === 0) {
@@ -598,98 +574,118 @@
             }
             
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('p', 'mm', 'a4'); // A4 vertical
+            const doc = new jsPDF('p', 'mm', 'a4'); 
             let y = 10;
             const margin = 10;
             const pageWidth = doc.internal.pageSize.getWidth();
 
-            // Título y Fecha
-            doc.setFontSize(18);
+            // 1. TÍTULO Y ENCABEZADO
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(22);
+            doc.setTextColor(67, 56, 202); // Índigo oscuro
             doc.text("Reporte Diario de Control de Activos", pageWidth / 2, y, { align: 'center' });
-            y += 8;
+            y += 10;
 
-            const todayDate = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
-            doc.setFontSize(12);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(75, 85, 99); // Gris
+
+            const todayDate = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             doc.text(`Fecha del Reporte: ${todayDate}`, margin, y);
             y += 6;
             
-            doc.setFontSize(10);
             doc.text(`Generado por ID de Seguridad: ${securityId}`, margin, y);
             y += 8;
 
-            // CABECERA DE LA TABLA
-            doc.setFontSize(9);
-            doc.setFillColor(200, 200, 220); 
-            doc.rect(margin, y, pageWidth - 2 * margin, 7, 'F'); 
-
-            // Definición de columnas y sus anchos (suman 190 mm, el ancho útil de A4)
-            const cols = [
-                { title: "Activo", width: 20 },
-                { title: "Usuario", width: 30 },
-                { title: "Depto (ENTREGA)", width: 25 }, 
-                { title: "ID Guardia (ENTREGA)", width: 20 },
-                { title: "Hora ENTREGA", width: 20 },
-                { title: "Estado", width: 20 },
-                { title: "ID Guardia (RETORNA)", width: 20 },
-                { title: "Hora RETORNA", width: 25 },
-                { title: "Obs. (ENTREGA)", width: 10 } // Reducido para que quepa todo
+            // 2. PREPARACIÓN DE DATOS PARA autoTable
+            
+            // Definición de las columnas (Headers)
+            const head = [
+                [
+                    "Activo", 
+                    "Usuario", 
+                    "Depto (ENT)", 
+                    "ID Ent",
+                    "Hora Ent",
+                    "Estado",
+                    "ID Ret",
+                    "Hora Ret",
+                    "Obs. (ENTREGA)"
+                ]
             ];
             
-            let currentX = margin;
-            doc.setFont(doc.getFont().fontName, 'bold');
-            cols.forEach(col => {
-                doc.text(col.title, currentX + 1, y + 5);
-                currentX += col.width;
-            });
-            doc.setFont(doc.getFont().fontName, 'normal');
-            y += 7; 
-
-            // DATOS DE LA TABLA
-            doc.setFontSize(8);
-            
-            todayLogs.forEach((log, index) => {
-                // Salto de página
-                if (y > doc.internal.pageSize.getHeight() - margin * 2) {
-                    doc.addPage();
-                    y = margin;
-                    // Opcional: repetir cabecera en nueva página (omitido por simplicidad)
-                }
-
-                const bgColor = index % 2 === 0 ? 240 : 255; 
-                doc.setFillColor(bgColor, bgColor, bgColor);
-                doc.rect(margin, y, pageWidth - 2 * margin, 6, 'F'); 
-
+            // Mapeo de los datos para las filas
+            const body = todayLogs.map(log => {
                 const saleTime = new Date(log.checkoutTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
                 const returnTime = log.isReturned ? new Date(log.returnTime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : 'N/A';
                 const status = log.isReturned ? 'DEVUELTO' : 'PENDIENTE';
                 
-                const data = [
+                // Truncamiento de Observación para la tabla (Aprox. 40 caracteres por ancho de autoTable)
+                let obsText = log.checkoutObservation || 'N/A';
+                if (obsText.length > 40) {
+                    obsText = obsText.substring(0, 37) + '...';
+                }
+
+                return [
                     log.keyRequested,
                     log.userName,
                     log.checkoutLocation,
-                    log.checkoutUserId || 'N/A', // Nuevo campo
+                    log.checkoutUserId || 'N/A', 
                     saleTime,
                     status,
-                    log.returnUserId || 'N/A', // Nuevo campo
+                    log.returnUserId || 'N/A', 
                     returnTime,
-                    log.checkoutObservation
+                    obsText
                 ];
-                
-                currentX = margin; 
-                data.forEach((text, i) => {
-                    // Truncamiento simple para asegurar que quepa
-                    let maxText = text;
-                    if (cols[i].width < 25 && text.length > 10) {
-                        maxText = text.substring(0, 7) + '...';
-                    } else if (text.length > 20) {
-                        maxText = text.substring(0, 17) + '...';
-                    }
-                    doc.text(maxText, currentX + 1, y + 4);
-                    currentX += cols[i].width;
-                });
-                
-                y += 6; 
             });
+
+            // 3. GENERACIÓN DE LA TABLA CON ESTILO
+            doc.autoTable({
+                startY: y + 2,
+                head: head,
+                body: body,
+                theme: 'striped', // Un tema limpio y moderno
+                headStyles: { 
+                    fillColor: [67, 56, 202], // Fondo Índigo
+                    textColor: 255, // Texto Blanco
+                    fontStyle: 'bold',
+                    fontSize: 8,
+                    halign: 'center' // Centrar encabezados
+                },
+                styles: {
+                    fontSize: 7, // Tamaño de fuente más pequeño para que quepa más
+                    cellPadding: 1, // Reducir padding
+                    overflow: 'linebreak' // Clave para evitar el solapamiento: rompe la línea si es muy larga
+                },
+                columnStyles: {
+                    0: { cellWidth: 15 }, // Activo
+                    1: { cellWidth: 25 }, // Usuario
+                    2: { cellWidth: 20 }, // Depto (ENT)
+                    3: { cellWidth: 10 }, // ID Ent
+                    4: { cellWidth: 12 }, // Hora Ent
+                    5: { cellWidth: 15, fontStyle: 'bold' }, // Estado
+                    6: { cellWidth: 10 }, // ID Ret
+                    7: { cellWidth: 12 }, // Hora Ret
+                    8: { cellWidth: 35 } // Obs. (ENTREGA) - Aún tiene buen espacio
+                },
+                didDrawCell: (data) => {
+                    // Estilo condicional para la columna 'Estado'
+                    if (data.column.index === 5 && data.cell.section === 'body') {
+                        const status = data.cell.text[0];
+                        if (status === 'PENDIENTE') {
+                            doc.setTextColor(234, 88, 12); // Naranja oscuro
+                        } else if (status === 'DEVUELTO') {
+                            doc.setTextColor(22, 163, 74); // Verde oscuro
+                        }
+                    }
+                }
+            });
+
+            // 4. Pie de página (Footer)
+            y = doc.autoTable.previous.finalY + 10;
+            doc.setFontSize(8);
+            doc.setTextColor(107, 114, 128);
+            doc.text(`Generado el ${new Date().toLocaleTimeString('es-ES')} | Control de Activos`, margin, doc.internal.pageSize.getHeight() - margin);
 
             // Guardar el PDF
             const filename = `Reporte_ControlActivos_${new Date().toISOString().slice(0, 10)}.pdf`;
@@ -701,4 +697,3 @@
     </script>
 </body>
 </html>
-
