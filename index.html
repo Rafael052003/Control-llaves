@@ -7,7 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script> 
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script> 
+    
     <link rel="manifest" href="manifest.json">
 
     <style>
@@ -606,6 +608,7 @@
                 return;
             }
 
+            // La validación ahora debería pasar con las CDNs corregidas en el <head>
             if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined' || typeof window.jspdf.jsPDF.prototype.autoTable === 'undefined') {
                 showMessage("Error: La librería jsPDF y el plugin autoTable no están cargados correctamente. Verifique la conexión a internet.", 'error');
                 return;
