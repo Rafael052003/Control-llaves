@@ -1,10 +1,21 @@
-Control de Activos y Llaves (PWA Local)
-​Esta es una Aplicación Web Progresiva (PWA) simple diseñada para el registro local (en el dispositivo) de la entrega y devolución de activos y llaves por parte del personal de seguridad.
-​Características
-​Autenticación por Nombre: El personal de seguridad inicia sesión seleccionando su nombre y usando una contraseña.
-​Registro de Transacciones: Guarda la información de entrega (quién solicita, qué llave, dónde y cuándo).
-​Gestión de Pendientes: Muestra las llaves que han sido entregadas y están pendientes de devolución.
-​Reporte Diario: Permite generar un archivo PDF con el resumen de todas las transacciones del día.
-​PWA: Puede instalarse en dispositivos móviles o de escritorio para un acceso rápido y funciona sin conexión a internet (una vez cargada).
-​Configuración de Usuarios
-​El sistema utiliza usuarios predefinidos con la misma contraseña genérica (clave123) para el inicio de sesión.
+{
+"name": "Control de Llaves RS (Local)",
+"short_name": "KeyLogLocal",
+"description": "App para el registro de activos y llaves (solo en este dispositivo).",
+"start_url": "./index.html",
+"display": "standalone",
+"background_color": "#eef2ff",
+"theme_color": "#4f46e5",
+"icons": [
+{
+"src": "https://www.google.com/search?q=https://placehold.co/192x192/4f46e5/ffffff/png%3Ftext%3DCL",
+"sizes": "192x192",
+"type": "image/png"
+},
+{
+"src": "https://www.google.com/search?q=https://placehold.co/512x512/4f46e5/ffffff/png%3Ftext%3DCL",
+"sizes": "512x512",
+"type": "image/png"
+}
+]
+}
