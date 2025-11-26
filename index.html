@@ -75,7 +75,7 @@
     <div id="main-app-content" class="app-container hidden">
 
         <header class="text-center py-8 mb-4 bg-indigo-700 text-white rounded-b-3xl shadow-2xl flex justify-between items-center px-6">
-            <h1 class="text-2xl md:text-4xl font-extrabold tracking-tight">Control de Activos</h1>
+            <h1 class="text-2xl md:text-4xl font-extrabold tracking-tight">Control de Llaves</h1>
             <button id="logout-btn" onclick="handleLogout()" class="px-3 py-1.5 font-semibold text-xs bg-white text-indigo-700 rounded-lg hover:bg-gray-100 transition-colors">
                 Cerrar Sesión
             </button>
@@ -115,7 +115,7 @@
                     </div>
 
                     <div>
-                        <label for="keyRequested" class="block text-sm font-medium text-gray-700">Llave/Activo Solicitado</label>
+                        <label for="keyRequested" class="block text-sm font-medium text-gray-700">Llave Solicitada</label>
                         <select id="keyRequested" name="keyRequested" required class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white">
                             <option value="">-- Seleccione Activo --</option>
                             <option value="Deposito">Deposito</option>
@@ -579,7 +579,7 @@
 
             doc.setFontSize(14).setFont('helvetica', 'bold');
             doc.setTextColor(52, 152, 219); // Color Accent
-            doc.text("REPORTE DIARIO DE CONTROL DE ACTIVOS", pageWidth / 2, yPos, { align: 'center' });
+            doc.text("REPORTE DIARIO DE CONTROL DE LLAVES", pageWidth / 2, yPos, { align: 'center' });
             yPos += 8;
 
             // INFORMACIÓN DE FECHA Y USUARIO
@@ -736,7 +736,7 @@
             });
 
             // Guardar el PDF
-            const filename = `Reporte_ControlActivos_${new Date().toISOString().slice(0, 10)}.pdf`;
+            const filename = `Reporte_ControlLaves_${new Date().toISOString().slice(0, 10)}.pdf`;
             doc.save(filename);
 
             showMessage(`PDF de reporte diario generado y descargado: ${filename}`, 'success');
