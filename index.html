@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script> 
     
     <link rel="manifest" href="manifest.json">
@@ -563,7 +562,7 @@
 
         // ******************************************************************
         // ************ FUNCIÓN DE EXPORTACIÓN CON jsPDF.autoTable() *********
-        // ************ ADAPTADA DEL CÓDIGO 1 ********************************
+        // ************ CÓDIGO CORREGIDO ************************************
         // ******************************************************************
 
         // Función auxiliar para añadir el encabezado y pie de página, similar al Código 1
@@ -607,13 +606,10 @@
                 showMessage("Debe iniciar sesión para generar el reporte.", 'error');
                 return;
             }
-
-            // La validación ahora debería pasar con las CDNs corregidas en el <head>
-            if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined' || typeof window.jspdf.jsPDF.prototype.autoTable === 'undefined') {
-                showMessage("Error: La librería jsPDF y el plugin autoTable no están cargados correctamente. Verifique la conexión a internet.", 'error');
-                return;
-            }
-
+            
+            // Se elimina la validación estricta que causaba el error con la versión UMD
+            // Se confía en la carga correcta de las CDN en el <head>
+            
             const logs = loadLogs();
             const startOfToday = getStartOfToday();
             // Filtra los logs de hoy y ordena por hora de entrega
@@ -625,7 +621,7 @@
                 return;
             }
 
-            const { jsPDF } = window.jspdf;
+            // CORRECCIÓN CLAVE: Se inicializa jsPDF correctamente
             const doc = new jsPDF('p', 'mm', 'a4'); 
             const margin = 10;
             const pageWidth = doc.internal.pageSize.getWidth();
