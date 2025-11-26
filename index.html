@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control de Llaves - Local</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script> 
     <link rel="manifest" href="manifest.json">
@@ -558,9 +559,9 @@
                 return;
             }
             
-            // El plugin autoTable se cargó en el <head>
+            // Verificación del plugin (Ahora debería funcionar)
             if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined' || typeof window.jspdf.jsPDF.prototype.autoTable === 'undefined') {
-                showMessage("Error: La librería jsPDF y el plugin autoTable no están cargados correctamente. Verifica los scripts en el <head>.", 'error');
+                showMessage("Error: La librería jsPDF y el plugin autoTable no están cargados correctamente. Verifique la conexión a internet.", 'error');
                 return;
             }
 
@@ -646,15 +647,15 @@
                 body: body,
                 theme: 'striped', // Un tema limpio y moderno
                 headStyles: { 
-                    fillColor: [67, 56, 202], // Fondo Índigo
+                    fillColor: [67, 56, 202], // Fondo Índigo (Color de la app)
                     textColor: 255, // Texto Blanco
                     fontStyle: 'bold',
                     fontSize: 8,
                     halign: 'center' // Centrar encabezados
                 },
                 styles: {
-                    fontSize: 7, // Tamaño de fuente más pequeño para que quepa más
-                    cellPadding: 1, // Reducir padding
+                    fontSize: 7, 
+                    cellPadding: 1, 
                     overflow: 'linebreak' // Clave para evitar el solapamiento: rompe la línea si es muy larga
                 },
                 columnStyles: {
@@ -666,7 +667,7 @@
                     5: { cellWidth: 15, fontStyle: 'bold' }, // Estado
                     6: { cellWidth: 10 }, // ID Ret
                     7: { cellWidth: 12 }, // Hora Ret
-                    8: { cellWidth: 35 } // Obs. (ENTREGA) - Aún tiene buen espacio
+                    8: { cellWidth: 35 } // Obs. (ENTREGA) - Con buen espacio
                 },
                 didDrawCell: (data) => {
                     // Estilo condicional para la columna 'Estado'
@@ -682,6 +683,7 @@
             });
 
             // 4. Pie de página (Footer)
+            // Se actualizó para usar la hora de generación y evitar el contador de página (simplificado)
             y = doc.autoTable.previous.finalY + 10;
             doc.setFontSize(8);
             doc.setTextColor(107, 114, 128);
