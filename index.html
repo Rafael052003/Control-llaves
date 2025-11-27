@@ -630,10 +630,11 @@
                 jsPDF_Constructor = window.jspdf.jsPDF;
             } 
             else {
-                showMessage("❌ ERROR: La librería jsPDF no se cargó correctamente.", 'error');
+                showMessage("❌ ERROR: La librería jsPDF y/o el plugin autotable no están cargados correctamente. Verifique la conexión a internet.", 'error');
                 return;
             }
 
+            // Inicializar jsPDF
             const doc = new jsPDF_Constructor('p', 'mm', 'a4'); 
 
             if (typeof doc.autoTable !== 'function') {
@@ -655,7 +656,8 @@
             const margin = 10;
             const pageWidth = doc.internal.pageSize.getWidth();
 
-            let currentY = addReportHeaderAndFooter(doc, pageWidth, margin);
+            // Re-añadir el encabezado para la primera página
+            let currentY = addReportHeaderAndFooter(doc, pageWidth, margin); 
 
             const headers = [
                 "Activo", 
@@ -663,7 +665,7 @@
                 "Depto (ENT)", 
                 "ID Ent",
                 "Hora Ent",
-                "Firma (ENT)", 
+                "Firma (ENT)", // Índice 5
                 "Estado",
                 "ID Ret",
                 "Hora Ret",
@@ -678,7 +680,7 @@
 
                 // Preparación de la imagen para autoTable
                 let signatureImage = null;
-                // Verificar si la Data URL es válida y no es la Data URL de un lienzo en blanco
+                // Solo incluir la Data URL si es una firma real
                 if (log.checkoutSignature && log.checkoutSignature.length > 500) { 
                     signatureImage = log.checkoutSignature;
                 }
@@ -689,8 +691,8 @@
                     log.checkoutLocation || 'N/A',
                     log.checkoutUserId || 'N/A', 
                     hourEnt,
-                    // Si hay firma, se inserta la imagen, si no, se deja la cadena 'N/A'
-                    signatureImage ? { content: '', image: signatureImage, colSpan: 1, rowSpan: 1 } : 'N/A', 
+                    // Si hay firma, se inserta la Data URL. Si no, se deja 'N/A'
+                    signatureImage || 'N/A', 
                     status,
                     log.returnUserId || 'N/A', 
                     hourRet,
@@ -723,7 +725,7 @@
                     2: { cellWidth: 14 }, // Depto (ENT)
                     3: { cellWidth: 8, halign: 'center' }, // ID Ent
                     4: { cellWidth: 8, halign: 'center' }, // Hora Ent
-                    5: { cellWidth: 18, halign: 'center', minCellHeight: 18 }, // FIRMA (Ajustado para la imagen)
+                    5: { cellWidth: 18, halign: 'center', minCellHeight: 18, valign: 'middle' }, // FIRMA (Ajustado para la imagen)
                     6: { cellWidth: 13, fontStyle: 'bold', halign: 'center' }, // Estado 
                     7: { cellWidth: 8, halign: 'center' }, // ID Ret
                     8: { cellWidth: 8, halign: 'center' }, // Hora Ret
@@ -736,9 +738,49 @@
                     addReportHeaderAndFooter(doc, pageWidth, margin);
                 },
 
+                // CORRECCIÓN CLAVE: DIBUJAR LA IMAGEN DE LA FIRMA EN LA CELDA CORRESPONDIENTE
                 didDrawCell: (data) => {
-                    // Estilo condicional para la columna 'Estado' (Índice 6)
-                    if (data.column.index === 6 && data.cell.section === 'body') {
+                    // Columna de Firma (Índice 5) y solo en el cuerpo de la tabla
+                    if (data.column.index === 5 && data.cell.section === 'body') {
+                        const firmaDataURL = data.cell.raw; 
+                        
+                        // 1. Estilo condicional para el estado (Columna 6)
+                        if (data.column.index === 6) { 
+                            const status = data.cell.text[0];
+                            if (status === 'PENDIENTE') {
+                                data.cell.styles.fillColor = [248, 215, 218];
+                                doc.setTextColor(234, 88, 12); 
+                            } else if (status === 'DEVUELTO') {
+                                data.cell.styles.fillColor = [212, 237, 218]; 
+                                doc.setTextColor(22, 163, 74); 
+                            }
+                        }
+                        
+                        // 2. DIBUJAR LA FIRMA
+                        if (firmaDataURL && typeof firmaDataURL === 'string' && firmaDataURL.startsWith('data:image/jpeg')) {
+                            const cellWidth = data.cell.width;
+                            const cellHeight = data.cell.height;
+
+                            // Dibujar la imagen de la firma dentro de la celda
+                            // Usamos un padding pequeño para evitar que la imagen toque los bordes
+                            const imgPadding = 0.5; 
+                            doc.addImage(
+                                firmaDataURL, 
+                                'JPEG', 
+                                data.cell.x + imgPadding, 
+                                data.cell.y + imgPadding, 
+                                cellWidth - (2 * imgPadding), 
+                                cellHeight - (2 * imgPadding)
+                            );
+                        } else if (firmaDataURL === 'N/A') {
+                            // Centrar 'N/A' en la celda de la firma
+                            doc.setFontSize(7).setTextColor(100, 100, 100);
+                            doc.text('N/A', data.cell.x + (data.cell.width / 2), data.cell.y + (data.cell.height / 2), {
+                                 align: 'center', 
+                                 baseline: 'middle'
+                            });
+                        }
+                    } else if (data.column.index === 6 && data.cell.section === 'body') { // Reaplicar el estilo condicional del estado
                         const status = data.cell.text[0];
                         if (status === 'PENDIENTE') {
                             data.cell.styles.fillColor = [248, 215, 218];
@@ -747,11 +789,6 @@
                             data.cell.styles.fillColor = [212, 237, 218]; 
                             doc.setTextColor(22, 163, 74); 
                         }
-                    }
-                    // Centrar texto para la celda 'N/A' en la columna de firma (Índice 5)
-                     if (data.column.index === 5 && data.cell.section === 'body' && data.cell.text[0] === 'N/A') {
-                        data.cell.styles.halign = 'center';
-                        data.cell.styles.valign = 'middle'; 
                     }
                 }
             });
