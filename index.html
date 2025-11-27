@@ -357,10 +357,9 @@
             const canvasCheckout = document.getElementById('signature-pad-checkout');
             if (canvasCheckout) {
                 
-                // CORRECCIÓN 3: Función de redimensionamiento mejorada y forzada
+                // Función de redimensionamiento mejorada y forzada
                 function resizeCanvas() {
                     const ratio = Math.max(window.devicePixelRatio || 1, 1);
-                    // Usar las dimensiones de su contenedor (dadas por el nuevo CSS)
                     canvasCheckout.width = canvasCheckout.offsetWidth * ratio; 
                     canvasCheckout.height = canvasCheckout.offsetHeight * ratio;
                     canvasCheckout.getContext("2d").scale(ratio, ratio);
@@ -368,7 +367,6 @@
 
                 // Forzar la primera ejecución para que tenga altura ANTES de SignaturePad
                 resizeCanvas(); 
-                // Doble chequeo después de un corto retraso por si la renderización es lenta
                 setTimeout(resizeCanvas, 100); 
 
                 window.addEventListener('resize', resizeCanvas);
@@ -744,25 +742,13 @@
                     if (data.column.index === 5 && data.cell.section === 'body') {
                         const firmaDataURL = data.cell.raw; 
                         
-                        // 1. Estilo condicional para el estado (Columna 6)
-                        if (data.column.index === 6) { 
-                            const status = data.cell.text[0];
-                            if (status === 'PENDIENTE') {
-                                data.cell.styles.fillColor = [248, 215, 218];
-                                doc.setTextColor(234, 88, 12); 
-                            } else if (status === 'DEVUELTO') {
-                                data.cell.styles.fillColor = [212, 237, 218]; 
-                                doc.setTextColor(22, 163, 74); 
-                            }
-                        }
-                        
                         // 2. DIBUJAR LA FIRMA
                         if (firmaDataURL && typeof firmaDataURL === 'string' && firmaDataURL.startsWith('data:image/jpeg')) {
                             const cellWidth = data.cell.width;
                             const cellHeight = data.cell.height;
 
                             // Dibujar la imagen de la firma dentro de la celda
-                            // Usamos un padding pequeño para evitar que la imagen toque los bordes
+                            // Usamos un padding pequeño (0.5) y las dimensiones exactas de la celda.
                             const imgPadding = 0.5; 
                             doc.addImage(
                                 firmaDataURL, 
@@ -780,7 +766,10 @@
                                  baseline: 'middle'
                             });
                         }
-                    } else if (data.column.index === 6 && data.cell.section === 'body') { // Reaplicar el estilo condicional del estado
+                    } 
+                    
+                    // Aplicar el estilo condicional para el estado (Columna 6)
+                    if (data.column.index === 6 && data.cell.section === 'body') { 
                         const status = data.cell.text[0];
                         if (status === 'PENDIENTE') {
                             data.cell.styles.fillColor = [248, 215, 218];
