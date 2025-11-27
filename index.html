@@ -409,23 +409,11 @@
 
             const formData = new FormData(e.target);
             
-            // Generar la Data URL de la firma con formato JPEG (menor tamaño)
-            // *** CORRECCIÓN CLAVE 1: Forzar una resolución para la Data URL ***
-            const canvas = signaturePadCheckout.canvas;
-            const originalRatio = canvas.width / canvas.height;
-            // Definir un ancho de destino en píxeles
-            const targetWidth = 400; 
-            const targetHeight = targetWidth / originalRatio; 
-
-            // Exportar la firma forzando el escalado interno
+            // Generar la Data URL de la firma con formato PNG (más estable para jsPDF)
+            // *** CORRECCIÓN CLAVE 1: Cambiar de 'image/jpeg' a 'image/png' ***
             const signatureDataURL = signaturePadCheckout ? 
-                signaturePadCheckout.toDataURL('image/jpeg', 0.8) : // Usamos la función básica de toDataURL ya que la versión con dimensiones puede ser incompatible
+                signaturePadCheckout.toDataURL('image/png') : 
                 null;
-            
-            // OPTIMIZACIÓN (Si la firma es grande y ocupa mucho espacio en local storage)
-            // Si la librería soporta el escalado, se usaría:
-            // signaturePadCheckout.toDataURL('image/jpeg', 0.8, targetWidth, targetHeight);
-            // Por ahora, usamos la versión estándar y confiamos en el ajuste de jsPDF
 
             const newLog = {
                 id: generateUUID(), 
@@ -438,7 +426,7 @@
                 checkoutTime: Date.now(), 
                 checkoutUserId: securityId, 
                 
-                // GUARDAR FIRMA COMO Base64
+                // GUARDAR FIRMA COMO Base64 PNG
                 checkoutSignature: signatureDataURL, 
             };
 
@@ -685,13 +673,16 @@
                 "Obs. (RETORNA)"
             ];
 
+            // Filtramos las firmas para que solo se use PNG/JPEG, ignorando los registros viejos con formatos problemáticos
             const body = todayLogs.map(log => {
                 const hourEnt = formatTimeForPdf(log.checkoutTime);
                 const hourRet = log.isReturned ? formatTimeForPdf(log.returnTime) : 'N/A';
                 const status = log.isReturned ? 'DEVUELTO' : 'PENDIENTE';
 
                 let signatureImage = null;
-                if (log.checkoutSignature && log.checkoutSignature.length > 500) { 
+                // Verificamos si la firma es una Data URL válida (PNG o JPEG)
+                if (log.checkoutSignature && typeof log.checkoutSignature === 'string' && 
+                   (log.checkoutSignature.startsWith('data:image/png') || log.checkoutSignature.startsWith('data:image/jpeg'))) { 
                     signatureImage = log.checkoutSignature;
                 }
 
@@ -701,7 +692,6 @@
                     log.checkoutLocation || 'N/A',
                     log.checkoutUserId || 'N/A', 
                     hourEnt,
-                    // Si hay firma, se inserta la Data URL. Si no, se deja 'N/A'
                     signatureImage || 'N/A', 
                     status,
                     log.returnUserId || 'N/A', 
@@ -755,20 +745,23 @@
                         const firmaDataURL = data.cell.raw; 
                         
                         // 2. DIBUJAR LA FIRMA
-                        if (firmaDataURL && typeof firmaDataURL === 'string' && firmaDataURL.startsWith('data:image/jpeg')) {
+                        if (firmaDataURL && typeof firmaDataURL === 'string' && 
+                            (firmaDataURL.startsWith('data:image/png') || firmaDataURL.startsWith('data:image/jpeg'))) {
+                            
                             const cellWidth = data.cell.width;
                             const cellHeight = data.cell.height;
-
-                            // Ajustamos el padding (en mm)
                             const imgPadding = 0.5; 
                             
-                            // Usar las dimensiones de la celda menos el doble del padding.
                             const imgWidth = cellWidth - (2 * imgPadding);
                             const imgHeight = cellHeight - (2 * imgPadding);
+
+                            // Detectar el tipo de imagen
+                            const imageType = firmaDataURL.startsWith('data:image/png') ? 'PNG' : 'JPEG';
                             
                             doc.addImage(
                                 firmaDataURL, 
-                                'JPEG', 
+                                // *** CORRECCIÓN CLAVE 2: Usar 'PNG' (o 'JPEG') ***
+                                imageType, 
                                 data.cell.x + imgPadding, 
                                 data.cell.y + imgPadding, 
                                 imgWidth, 
