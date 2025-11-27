@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Llaves - Con Firma Digital</title>
+    <title>Control de Llaves - Riba Smith</title>
     <script src="https://cdn.tailwindcss.com"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script> 
-    
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script> 
 
     <link rel="manifest" href="manifest.json">
@@ -17,38 +16,42 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #eef2ff; /* Fondo muy suave azul */
+            background-color: #f8fafc; /* Fondo muy suave gris claro */
         }
         /* Estilos generales de la aplicación */
         .app-container {
-            @apply max-w-4xl mx-auto p-4 md:p-8;
+            @apply max-w-5xl mx-auto p-4 md:p-10;
         }
         .card {
-            @apply bg-white p-6 rounded-2xl shadow-xl border border-indigo-100/50 transition-all duration-300;
+            @apply bg-white p-6 md:p-8 rounded-3xl shadow-2xl border border-gray-100 transition-all duration-300;
         }
         .btn-primary {
-            @apply px-6 py-3 font-bold text-white bg-indigo-600 rounded-xl shadow-lg hover:bg-indigo-700 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-indigo-300;
+            @apply px-8 py-3 font-bold text-white bg-indigo-700 rounded-xl shadow-lg hover:bg-indigo-800 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-indigo-400/70;
         }
         .btn-success {
-            @apply px-4 py-2 font-semibold text-white bg-green-600 rounded-xl hover:bg-green-700 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-green-300;
+            @apply px-4 py-2 font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-emerald-300;
         }
         .btn-report {
-            @apply px-4 py-2 font-semibold text-white bg-red-600 rounded-xl hover:bg-red-700 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-red-300;
+            @apply px-6 py-2.5 font-bold text-white bg-red-600 rounded-xl shadow-md hover:bg-red-700 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-red-400;
+        }
+        /* Estilo para los inputs mejorados */
+        .app-input {
+            @apply mt-1 block w-full border border-gray-300 rounded-xl shadow-inner p-3 bg-gray-50 focus:ring-indigo-500 focus:border-indigo-500 appearance-none transition-colors;
         }
     </style>
 </head>
 <body>
 
-    <div id="login-modal" class="fixed inset-0 bg-indigo-900 bg-opacity-95 flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm transform transition-transform duration-500 ease-out">
-            <h3 class="text-3xl font-extrabold mb-4 text-indigo-700 text-center">Acceso de Seguridad</h3>
-            <p class="text-gray-600 mb-6 text-center">Seleccione su nombre e ingrese su contraseña.</p>
+    <div id="login-modal" class="fixed inset-0 bg-gray-900 bg-opacity-90 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-3xl shadow-3xl p-8 w-full max-w-md transform transition-transform duration-500 ease-out border-t-4 border-indigo-600">
+            <h3 class="text-3xl font-extrabold mb-2 text-indigo-700 text-center">🔐 Acceso de Agentes</h3>
+            <p class="text-gray-600 mb-6 text-center text-sm">Sistema de Control de Llaves Riba Smith</p>
 
-            <form id="login-form" class="space-y-4">
+            <form id="login-form" class="space-y-5">
                 <div>
-                    <label for="username" class="block text-sm font-medium text-gray-700">Nombre de Agente de Seguridad</label>
+                    <label for="username" class="block text-sm font-semibold text-gray-700">Nombre de Agente</label>
                     <select id="username" name="username" required 
-                           class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white">
+                           class="app-input">
                         <option value="">-- Seleccione su Nombre --</option>
                         <option value="Rafael Ramos">Rafael Ramos</option>
                         <option value="José Guevara">José Guevara</option>
@@ -60,52 +63,55 @@
                 </div>
 
                 <div>
-                    <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
+                    <label for="password" class="block text-sm font-semibold text-gray-700">Contraseña</label>
                     <input type="password" id="password" name="password" required 
-                           class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500"
-                           placeholder="Contraseña">
+                           class="app-input"
+                           placeholder="••••••••">
                 </div>
 
                 <div id="login-error" class="hidden text-red-600 text-sm font-semibold">Credenciales incorrectas.</div>
 
                 <button type="submit" class="btn-primary w-full mt-6">
-                    Iniciar Sesión
+                    Iniciar Sesión Segura
                 </button>
             </form>
         </div>
     </div>
+    
     <div id="main-app-content" class="app-container hidden">
 
-        <header class="text-center py-8 mb-4 bg-indigo-700 text-white rounded-b-3xl shadow-2xl flex justify-between items-center px-6">
-            <h1 class="text-2xl md:text-4xl font-extrabold tracking-tight">Control de Llaves</h1>
-            <button id="logout-btn" onclick="handleLogout()" class="px-3 py-1.5 font-semibold text-xs bg-white text-indigo-700 rounded-lg hover:bg-gray-100 transition-colors">
+        <header class="text-center py-8 mb-6 bg-indigo-700 text-white rounded-3xl shadow-xl flex justify-between items-center px-6 md:px-10">
+            <h1 class="text-3xl md:text-4xl font-extrabold tracking-wider">🔑 Control de Llaves</h1>
+            <button id="logout-btn" onclick="handleLogout()" class="px-3 py-1.5 font-semibold text-xs bg-white text-indigo-700 rounded-lg hover:bg-gray-100 transition-colors shadow-md">
                 Cerrar Sesión
             </button>
         </header>
 
-        <div class="mb-6 flex justify-center">
-            <button id="end-day-report-btn" onclick="generateDailyReportPdf()" class="btn-report flex items-center space-x-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"></path><line x1="10" y1="13" x2="14" y2="13"></line><line x1="12" y1="17" x2="12" y2="17"></line></svg>
-                <span>Terminar Día</span>
+        <div class="mb-8 flex justify-between items-center bg-white p-4 rounded-xl shadow-md border-l-4 border-indigo-500">
+             <div class="flex items-center space-x-2 text-sm text-gray-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>
+                <p>ID de Agente Activo:</p>
+                <span id="security-id" class="font-mono text-xs bg-indigo-100 text-indigo-700 p-2 rounded-lg font-bold"></span>
+            </div>
+            <button id="end-day-report-btn" onclick="generateDailyReportPdf()" class="btn-report flex items-center space-x-2 text-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"></path><line x1="10" y1="13" x2="14" y2="13"></line><line x1="12" y1="17" x2="12" y2="17"></line></svg>
+                <span>Generar Reporte PDF</span>
             </button>
         </div>
 
         <div id="message-container"></div>
-        <div id="auth-status" class="mb-10 card text-sm">
-            <p class="flex items-center justify-between">
-                ID de Seguridad Activo: 
-                <span id="security-id" class="font-mono text-xs bg-indigo-100 text-indigo-700 p-2 rounded-lg font-bold"></span>
-            </p>
-        </div>
 
         <div id="checkout-section" class="card mb-12">
-            <h2 class="text-2xl font-bold text-indigo-700 mb-4 pb-2 border-b border-indigo-100">1. Registrar Entrega de Llave</h2>
+            <h2 class="text-2xl font-extrabold text-indigo-700 mb-6 pb-3 border-b-2 border-indigo-100 flex items-center space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" /></svg>
+                <span>Registrar Entrega de Llave</span>
+            </h2>
 
-            <form id="checkout-form" class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form id="checkout-form" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label for="userName" class="block text-sm font-medium text-gray-700">Usuario que Solicita</label>
-                        <select id="userName" name="userName" required class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white">
+                        <label for="userName" class="block text-sm font-semibold text-gray-700">Usuario que Solicita</label>
+                        <select id="userName" name="userName" required class="app-input">
                             <option value="">-- Seleccione Usuario --</option>
                             <option value="Rafael Ramos">Rafael Ramos</option>
                             <option value="José Guevara">José Guevara</option>
@@ -117,8 +123,8 @@
                     </div>
 
                     <div>
-                        <label for="keyRequested" class="block text-sm font-medium text-gray-700">Llave Solicitada</label>
-                        <select id="keyRequested" name="keyRequested" required class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white">
+                        <label for="keyRequested" class="block text-sm font-semibold text-gray-700">Llave Solicitada</label>
+                        <select id="keyRequested" name="keyRequested" required class="app-input">
                             <option value="">-- Seleccione Activo --</option>
                             <option value="Deposito">Deposito</option>
                             <option value="Contenedor">Contenedor</option>
@@ -127,8 +133,8 @@
                 </div>
 
                 <div>
-                    <label for="checkoutLocation" class="block text-sm font-medium text-gray-700">Departamento</label>
-                    <select id="checkoutLocation" name="checkoutLocation" required class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white">
+                    <label for="checkoutLocation" class="block text-sm font-semibold text-gray-700">Departamento de Destino</label>
+                    <select id="checkoutLocation" name="checkoutLocation" required class="app-input">
                         <option value="">-- Seleccione Departamento --</option>
                         <option value="Rimith">Rimith</option>
                         <option value="Nevera">Nevera</option>
@@ -139,20 +145,21 @@
                     </select>
                 </div>
                 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Firma del Solicitante (Entregado)</label>
-                    <div class="border border-gray-300 rounded-xl bg-gray-50 p-1 h-40">
-                        <canvas id="signature-pad-checkout" width="400" height="150" class="w-full h-full bg-white rounded-lg cursor-crosshair border border-dashed border-indigo-200"></canvas>
+                <div class="py-2 border-t border-gray-100">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Firma del Solicitante (Entregado)</label>
+                    <div class="border-2 border-indigo-200 rounded-xl bg-white p-1 h-40 shadow-inner">
+                        <canvas id="signature-pad-checkout" width="400" height="150" class="w-full h-full bg-white rounded-lg cursor-crosshair"></canvas>
                     </div>
-                    <button type="button" id="clear-signature-checkout" class="mt-1 px-3 py-1 text-xs font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors">Borrar Firma</button>
+                    <button type="button" id="clear-signature-checkout" class="mt-2 px-3 py-1 text-xs font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors shadow-sm">Borrar Firma</button>
                 </div>
+                
                 <div>
-                    <label for="checkoutObservation" class="block text-sm font-medium text-gray-700">Observación (Opcional)</label>
-                    <textarea id="checkoutObservation" name="checkoutObservation" rows="2" class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                    <label for="checkoutObservation" class="block text-sm font-semibold text-gray-700">Observación (Opcional)</label>
+                    <textarea id="checkoutObservation" name="checkoutObservation" rows="2" class="app-input"></textarea>
                 </div>
 
-                <button type="submit" id="checkout-submit-btn" class="btn-primary w-full mt-6">
-                    <span id="submit-text">Registrar Entrega</span>
+                <button type="submit" id="checkout-submit-btn" class="btn-primary w-full mt-8">
+                    <span id="submit-text">✅ Registrar Entrega Ahora</span>
                     <span id="submit-loading" class="hidden flex items-center justify-center">
                         <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         Guardando...
@@ -161,8 +168,11 @@
             </form>
         </div>
 
-        <div id="pending-section" class="card">
-            <h2 class="text-2xl font-bold text-indigo-700 mb-6 pb-2 border-b border-indigo-100">2. Llaves Pendientes de Devolución</h2>
+        <div id="pending-section" class="card bg-gray-50 border-gray-200">
+            <h2 class="text-2xl font-extrabold text-indigo-700 mb-6 pb-3 border-b-2 border-indigo-100 flex items-center space-x-2">
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>
+                <span>Llaves Pendientes de Devolución</span>
+            </h2>
 
             <div id="key-list-container">
                 <div id="key-list-loading" class="text-center py-8 text-gray-500">
@@ -172,21 +182,24 @@
                 <div id="pending-keys-list" class="space-y-4">
                     </div>
                 <div id="key-list-empty" class="hidden text-center py-8 text-gray-500">
-                    <p class="text-lg">🎉 ¡Todas las llaves han sido devueltas! No hay registros pendientes.</p>
+                    <p class="text-lg font-semibold text-emerald-600">🎉 ¡Todas las llaves han sido devueltas! No hay registros pendientes.</p>
                 </div>
             </div>
         </div>
 
         <div id="return-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden items-center justify-center p-4 z-50">
-            <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
-                <h3 class="text-xl font-bold mb-4 text-indigo-700 border-b pb-2">Confirmar Devolución</h3>
-                <p class="text-gray-600 mb-4">Confirmar devolución de: <strong id="modal-key-name" class="text-indigo-600 font-extrabold"></strong>.</p>
+            <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md border-t-4 border-emerald-600">
+                <h3 class="text-xl font-bold mb-4 text-emerald-700 border-b pb-2 flex items-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-7.388 7.388A4 4 0 016.757 14H5v-2.043a4 4 0 011.172-2.828l7.386-7.386zM11.609 3.868l1.76-1.76c.4-.4 1.047-.4 1.447 0l1.76 1.76c.4.4.4 1.047 0 1.447l-1.76 1.76-1.447-1.447L12.56 5.315c-.4-.4-1.047-.4-1.447 0l-1.76 1.76 1.447 1.447-1.76 1.76L8.01 10.74l-2.09 2.09c-.4.4-1.047.4-1.447 0L2.71 11.33c-.4-.4-.4-1.047 0-1.447L9.492 2.18c.4-.4 1.047-.4 1.447 0z" /></svg>
+                    <span>Confirmar Devolución</span>
+                </h3>
+                <p class="text-gray-600 mb-2">Activo: <strong id="modal-key-name" class="text-emerald-600 font-extrabold"></strong></p>
                 <p class="text-gray-500 text-sm mb-4">Solicitada por: <span id="modal-user-name" class="font-semibold"></span></p>
 
                 <form id="return-form" class="space-y-4">
                     <div>
-                        <label for="returnLocation" class="block text-sm font-medium text-gray-700">Lugar de Devolución</label>
-                        <select id="returnLocation" name="returnLocation" required class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-green-500 focus:border-green-500 appearance-none bg-white">
+                        <label for="returnLocation" class="block text-sm font-semibold text-gray-700">Lugar de Devolución</label>
+                        <select id="returnLocation" name="returnLocation" required class="app-input">
                             <option value="">-- Seleccione Lugar --</option>
                             <option value="Seguridad Interno">Seguridad Interno</option>
                             <option value="Oficina de seguridad">Oficina de seguridad</option>
@@ -195,13 +208,13 @@
                     </div>
 
                     <div>
-                        <label for="returnObservation" class="block text-sm font-medium text-gray-700">Observación de Devolución (Opcional)</label>
-                        <textarea id="returnObservation" name="returnObservation" rows="2" class="mt-1 block w-full border border-gray-300 rounded-xl shadow-sm p-3 focus:ring-green-500 focus:border-green-500"></textarea>
+                        <label for="returnObservation" class="block text-sm font-semibold text-gray-700">Observación de Devolución (Opcional)</label>
+                        <textarea id="returnObservation" name="returnObservation" rows="2" class="app-input"></textarea>
                     </div>
 
-                    <div class="flex justify-end space-x-3 pt-2">
-                        <button type="button" onclick="closeReturnModal()" class="px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-xl hover:bg-gray-300 transition-colors duration-200">Cancelar</button>
-                        <button type="submit" id="confirm-return-btn" class="btn-success">
+                    <div class="flex justify-end space-x-3 pt-4">
+                        <button type="button" onclick="closeReturnModal()" class="px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-xl hover:bg-gray-300 transition-colors duration-200 shadow-sm">Cancelar</button>
+                        <button type="submit" id="confirm-return-btn" class="btn-success shadow-lg">
                             <span id="return-submit-text">Confirmar Devolución</span>
                             <span id="return-submit-loading" class="hidden flex items-center justify-center">
                                 <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -326,7 +339,7 @@
             let bgColor = 'bg-blue-100 border-blue-400 text-blue-700';
             let icon = 'ℹ️';
             if (type === 'error') { bgColor = 'bg-red-100 border-red-400 text-red-700'; icon = '❌'; }
-            if (type === 'success') { bgColor = 'bg-green-100 border-green-400 text-green-700'; icon = '✅'; }
+            if (type === 'success') { bgColor = 'bg-emerald-100 border-emerald-400 text-emerald-700'; icon = '✅'; }
 
             const msgDiv = document.createElement('div');
             msgDiv.className = `p-4 rounded-xl shadow-lg border ${bgColor} mb-4 flex items-center space-x-3 transition-opacity duration-300`;
@@ -409,8 +422,7 @@
 
             const formData = new FormData(e.target);
             
-            // Generar la Data URL de la firma con formato PNG (más estable para jsPDF)
-            // *** CORRECCIÓN CLAVE 1: Cambiar de 'image/jpeg' a 'image/png' ***
+            // CORRECCIÓN CLAVE: Generar la Data URL de la firma con formato PNG (más estable para jsPDF)
             const signatureDataURL = signaturePadCheckout ? 
                 signaturePadCheckout.toDataURL('image/png') : 
                 null;
@@ -673,17 +685,20 @@
                 "Obs. (RETORNA)"
             ];
 
-            // Filtramos las firmas para que solo se use PNG/JPEG, ignorando los registros viejos con formatos problemáticos
+            // Filtrado estricto para la firma
             const body = todayLogs.map(log => {
                 const hourEnt = formatTimeForPdf(log.checkoutTime);
                 const hourRet = log.isReturned ? formatTimeForPdf(log.returnTime) : 'N/A';
                 const status = log.isReturned ? 'DEVUELTO' : 'PENDIENTE';
 
                 let signatureImage = null;
-                // Verificamos si la firma es una Data URL válida (PNG o JPEG)
+                // CORRECCIÓN CLAVE: Solo usar la firma si es un PNG válido, para ignorar formatos rotos viejos.
                 if (log.checkoutSignature && typeof log.checkoutSignature === 'string' && 
-                   (log.checkoutSignature.startsWith('data:image/png') || log.checkoutSignature.startsWith('data:image/jpeg'))) { 
+                   log.checkoutSignature.startsWith('data:image/png')) { 
                     signatureImage = log.checkoutSignature;
+                } else if (log.checkoutSignature && typeof log.checkoutSignature === 'string' && log.checkoutSignature.startsWith('data:image/jpeg')) {
+                     // Si es un JPEG, lo marcamos para que jsPDF lo intente renderizar como JPEG.
+                     signatureImage = log.checkoutSignature;
                 }
 
                 return [
@@ -738,7 +753,7 @@
                     addReportHeaderAndFooter(doc, pageWidth, margin);
                 },
 
-                // CORRECCIÓN CLAVE: AJUSTE DE DIMENSIONES PARA EVITAR LA BARRA NEGRA
+                // CORRECCIÓN CLAVE: AJUSTE DE DIMENSIONES Y TIPO DE IMAGEN
                 didDrawCell: (data) => {
                     // Columna de Firma (Índice 5) y solo en el cuerpo de la tabla
                     if (data.column.index === 5 && data.cell.section === 'body') {
@@ -760,8 +775,7 @@
                             
                             doc.addImage(
                                 firmaDataURL, 
-                                // *** CORRECCIÓN CLAVE 2: Usar 'PNG' (o 'JPEG') ***
-                                imageType, 
+                                imageType, // Usamos PNG para las nuevas firmas o JPEG si es una firma vieja
                                 data.cell.x + imgPadding, 
                                 data.cell.y + imgPadding, 
                                 imgWidth, 
@@ -781,12 +795,13 @@
                     if (data.column.index === 6 && data.cell.section === 'body') { 
                         const status = data.cell.text[0];
                         if (status === 'PENDIENTE') {
-                            data.cell.styles.fillColor = [248, 215, 218];
-                            doc.setTextColor(234, 88, 12); 
+                            data.cell.styles.fillColor = [253, 230, 138]; /* Amarillo pastel */
+                            doc.setTextColor(180, 83, 9); /* Naranja oscuro */
                         } else if (status === 'DEVUELTO') {
-                            data.cell.styles.fillColor = [212, 237, 218]; 
-                            doc.setTextColor(22, 163, 74); 
+                            data.cell.styles.fillColor = [209, 250, 229]; /* Verde pastel */
+                            doc.setTextColor(5, 150, 105); /* Verde esmeralda */
                         }
+                        data.cell.styles.fontStyle = 'bold';
                     }
                 }
             });
