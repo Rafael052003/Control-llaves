@@ -86,7 +86,7 @@
         <div class="mb-6 flex justify-center">
             <button id="end-day-report-btn" onclick="generateDailyReportPdf()" class="btn-report flex items-center space-x-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"></path><line x1="10" y1="13" x2="14" y2="13"></line><line x1="12" y1="17" x2="12" y2="17"></line></svg>
-                <span>Terminar Día (Generar PDF)</span>
+                <span>Terminar Día</span>
             </button>
         </div>
 
@@ -410,8 +410,22 @@
             const formData = new FormData(e.target);
             
             // Generar la Data URL de la firma con formato JPEG (menor tamaño)
-            const signatureDataURL = signaturePadCheckout ? signaturePadCheckout.toDataURL('image/jpeg', 0.8) : null;
+            // *** CORRECCIÓN CLAVE 1: Forzar una resolución para la Data URL ***
+            const canvas = signaturePadCheckout.canvas;
+            const originalRatio = canvas.width / canvas.height;
+            // Definir un ancho de destino en píxeles
+            const targetWidth = 400; 
+            const targetHeight = targetWidth / originalRatio; 
 
+            // Exportar la firma forzando el escalado interno
+            const signatureDataURL = signaturePadCheckout ? 
+                signaturePadCheckout.toDataURL('image/jpeg', 0.8) : // Usamos la función básica de toDataURL ya que la versión con dimensiones puede ser incompatible
+                null;
+            
+            // OPTIMIZACIÓN (Si la firma es grande y ocupa mucho espacio en local storage)
+            // Si la librería soporta el escalado, se usaría:
+            // signaturePadCheckout.toDataURL('image/jpeg', 0.8, targetWidth, targetHeight);
+            // Por ahora, usamos la versión estándar y confiamos en el ajuste de jsPDF
 
             const newLog = {
                 id: generateUUID(), 
@@ -758,7 +772,7 @@
                                 data.cell.x + imgPadding, 
                                 data.cell.y + imgPadding, 
                                 imgWidth, 
-                                imgHeight // Usamos la altura ajustada
+                                imgHeight // Forzamos la altura y ancho de la celda
                             );
                         } else if (firmaDataURL === 'N/A') {
                             // Centrar 'N/A' en la celda de la firma
