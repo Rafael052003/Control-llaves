@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Llaves - Con Firma Digital</title>
+    <title>Control de Llaves</title>
     <script src="https://cdn.tailwindcss.com"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script> 
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script> 
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script> 
 
     <link rel="manifest" href="manifest.json">
 
@@ -86,7 +86,7 @@
         <div class="mb-6 flex justify-center">
             <button id="end-day-report-btn" onclick="generateDailyReportPdf()" class="btn-report flex items-center space-x-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"></path><line x1="10" y1="13" x2="14" y2="13"></line><line x1="12" y1="17" x2="12" y2="17"></line></svg>
-                <span>Terminar Día</span>
+                <span>Terminar Día (Generar PDF)</span>
             </button>
         </div>
 
@@ -221,6 +221,7 @@
 
         // --- Nombres de Guardia de Seguridad y sus credenciales ---
         const VALID_USERS = {
+            // Se mantuvieron los IDs en el formato que usas, aunque son largos, funcionarán.
             'Rafael Ramos': { password: '1234', id: 'RR 19075' },
             'José Guevara': { password: '1234', id: 'JG 5604' },
             'Ariel Bernal': { password: '1234', id: 'AB 22750' },
@@ -229,8 +230,8 @@
             'Samuel Reyes': { password: '1234', id: 'SR 26113' }
         };
 
-        let securityId = null; // ID del guardia actualmente logueado
-        let signaturePadCheckout; // Variable para el objeto SignaturePad de entrega
+        let securityId = null; 
+        let signaturePadCheckout; 
 
         // --- 1. AUTHENTICATION FUNCTIONS ---
 
@@ -239,7 +240,7 @@
             document.getElementById('security-id').textContent = id;
             document.getElementById('main-app-content').classList.remove('hidden');
             document.getElementById('login-modal').classList.add('hidden');
-            renderKeyList(); // Cargar la lista solo después de iniciar sesión
+            renderKeyList(); 
         }
 
         function handleLogin(e) {
@@ -278,7 +279,7 @@
         }
 
 
-        // --- 2. UTILITY FUNCTIONS (Mantienen la funcionalidad de logs) ---
+        // --- 2. UTILITY FUNCTIONS ---
 
         function generateUUID() {
             return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -350,27 +351,35 @@
         // --- 3. INITIALIZATION AND UI SETUP ---
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Adjuntar event listeners a los formularios
             document.getElementById('checkout-form').addEventListener('submit', handleCheckout);
             document.getElementById('return-form').addEventListener('submit', handleReturn);
             document.getElementById('login-form').addEventListener('submit', handleLogin);
 
-            // Inicialización de Signature Pad
             const canvasCheckout = document.getElementById('signature-pad-checkout');
             if (canvasCheckout) {
+                // Se usa la función de SignaturePad para inicializar, y el canvas se escala
+                // para que la imagen Base64 generada tenga la resolución correcta
+                function resizeCanvas() {
+                    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                    canvasCheckout.width = canvasCheckout.offsetWidth * ratio;
+                    canvasCheckout.height = canvasCheckout.offsetHeight * ratio;
+                    canvasCheckout.getContext("2d").scale(ratio, ratio);
+                }
+
+                // Asegurar que el canvas tenga el tamaño correcto antes de inicializar SignaturePad
+                resizeCanvas(); 
+                window.addEventListener('resize', resizeCanvas);
+
                 signaturePadCheckout = new SignaturePad(canvasCheckout, {
                     backgroundColor: 'rgb(255, 255, 255)' 
                 });
 
-                // Listener para borrar la firma
                 document.getElementById('clear-signature-checkout').addEventListener('click', () => {
                     signaturePadCheckout.clear();
                 });
             }
 
-            // Verificar estado de la sesión al cargar
             checkLoginStatus();
-
             document.getElementById('key-list-loading').classList.add('hidden');
         });
 
@@ -384,7 +393,6 @@
                 return;
             }
 
-            // Validación de Firma - AHORA ES OBLIGATORIO
             if (signaturePadCheckout && signaturePadCheckout.isEmpty()) {
                 showMessage("Por favor, el solicitante debe firmar en el recuadro antes de registrar la entrega.", 'error');
                 return;
@@ -399,6 +407,12 @@
             submitLoading.classList.remove('hidden');
 
             const formData = new FormData(e.target);
+            
+            // **AJUSTE CRUCIAL:** Generar la Data URL de la firma para el PDF.
+            // Con la nueva librería, esto debería funcionar de manera más estable.
+            const signatureDataURL = signaturePadCheckout ? signaturePadCheckout.toDataURL('image/jpeg', 0.8) : null;
+
+
             const newLog = {
                 id: generateUUID(), 
                 userName: formData.get('userName').trim(), 
@@ -411,7 +425,7 @@
                 checkoutUserId: securityId, 
                 
                 // GUARDAR FIRMA COMO Base64
-                checkoutSignature: signaturePadCheckout ? signaturePadCheckout.toDataURL('image/jpeg') : null, 
+                checkoutSignature: signatureDataURL, 
             };
 
             const logs = loadLogs();
@@ -420,8 +434,8 @@
             renderKeyList();
 
             showMessage("Entrega de llave registrada con éxito.", 'success');
-            e.target.reset(); // Limpiar el formulario
-            if (signaturePadCheckout) signaturePadCheckout.clear(); // Limpiar el pad de firma
+            e.target.reset(); 
+            if (signaturePadCheckout) signaturePadCheckout.clear(); 
 
             checkoutSubmitBtn.disabled = false;
             submitText.classList.remove('hidden');
@@ -484,7 +498,7 @@
             });
         }
 
-        // --- 6. GESTIÓN DEL MODAL Y DEVOLUCIÓN ---
+        // --- 6. GESTIÓN DEL MODAL Y DEVOLUCIÓN (MANTENIDO) ---
         const returnModal = document.getElementById('return-modal');
         const modalKeyName = document.getElementById('modal-key-name');
         const modalUserName = document.getElementById('modal-user-name');
@@ -507,7 +521,7 @@
             returnModal.classList.remove('flex');
         }
 
-        // --- 7. REGISTRAR DEVOLUCIÓN DE LLAVE (RETURN) ---
+        // --- 7. REGISTRAR DEVOLUCIÓN DE LLAVE (RETURN) (MANTENIDO) ---
         async function handleReturn(e) {
             e.preventDefault();
 
@@ -562,7 +576,7 @@
 
         // ******************************************************************
         // ************ FUNCIÓN DE EXPORTACIÓN CON jsPDF.autoTable() *********
-        // ************ CÓDIGO ACTUALIZADO CON LA FIRMA *********************
+        // ************ CÓDIGO FINAL CORREGIDO ******************************
         // ******************************************************************
 
         function addReportHeaderAndFooter(doc, pageWidth, margin) {
@@ -615,14 +629,14 @@
                 jsPDF_Constructor = window.jspdf.jsPDF;
             } 
             else {
-                showMessage("❌ ERROR: La librería jsPDF no se cargó correctamente. Intente refrescar el navegador (Ctrl+F5) o revise la conexión a internet.", 'error');
+                showMessage("❌ ERROR: La librería jsPDF no se cargó correctamente.", 'error');
                 return;
             }
 
             const doc = new jsPDF_Constructor('p', 'mm', 'a4'); 
 
             if (typeof doc.autoTable !== 'function') {
-                showMessage("❌ ERROR: El plugin jsPDF AutoTable no se cargó. El reporte no puede generarse.", 'error');
+                showMessage("❌ ERROR: El plugin jsPDF AutoTable no se cargó.", 'error');
                 return;
             }
 
@@ -642,14 +656,13 @@
 
             let currentY = addReportHeaderAndFooter(doc, pageWidth, margin);
 
-            // Definición de las columnas (Headers) - AÑADIDA FIRMA
             const headers = [
                 "Activo", 
                 "Usuario", 
                 "Depto (ENT)", 
                 "ID Ent",
                 "Hora Ent",
-                "Firma (ENT)", // NUEVA COLUMNA DE FIRMA
+                "Firma (ENT)", 
                 "Estado",
                 "ID Ret",
                 "Hora Ret",
@@ -657,11 +670,17 @@
                 "Obs. (RETORNA)"
             ];
 
-            // Mapeo de los datos para las filas
             const body = todayLogs.map(log => {
                 const hourEnt = formatTimeForPdf(log.checkoutTime);
                 const hourRet = log.isReturned ? formatTimeForPdf(log.returnTime) : 'N/A';
                 const status = log.isReturned ? 'DEVUELTO' : 'PENDIENTE';
+
+                // Preparación de la imagen para autoTable
+                let signatureImage = null;
+                // Verificar si la Data URL es válida y no es la Data URL de un lienzo en blanco
+                if (log.checkoutSignature && log.checkoutSignature.length > 500) { 
+                    signatureImage = log.checkoutSignature;
+                }
 
                 return [
                     log.keyRequested || 'N/A',
@@ -669,8 +688,8 @@
                     log.checkoutLocation || 'N/A',
                     log.checkoutUserId || 'N/A', 
                     hourEnt,
-                    // CELDA PARA LA IMAGEN DE LA FIRMA
-                    { content: '', image: log.checkoutSignature, colSpan: 1, rowSpan: 1 }, 
+                    // Si hay firma, se inserta la imagen, si no, se deja la cadena 'N/A'
+                    signatureImage ? { content: '', image: signatureImage, colSpan: 1, rowSpan: 1 } : 'N/A', 
                     status,
                     log.returnUserId || 'N/A', 
                     hourRet,
@@ -689,26 +708,26 @@
                     fillColor: [44, 62, 80], 
                     textColor: 255, 
                     fontStyle: 'bold',
-                    fontSize: 8,
+                    fontSize: 7, // Reducido ligeramente para más columnas
                     halign: 'center' 
                 },
                 styles: {
-                    fontSize: 7, 
+                    fontSize: 6, // Reducido el tamaño de fuente para caber
                     cellPadding: 1, 
                     overflow: 'linebreak' 
                 },
                 columnStyles: {
                     0: { cellWidth: 12, halign: 'center' }, // Activo
-                    1: { cellWidth: 18 }, // Usuario
+                    1: { cellWidth: 16 }, // Usuario (Reducido)
                     2: { cellWidth: 14 }, // Depto (ENT)
                     3: { cellWidth: 8, halign: 'center' }, // ID Ent
-                    4: { cellWidth: 10, halign: 'center' }, // Hora Ent
-                    5: { cellWidth: 18, halign: 'center', minCellHeight: 20 }, // FIRMA (Aumentar alto de celda para la imagen)
-                    6: { cellWidth: 15, fontStyle: 'bold', halign: 'center' }, // Estado (Nuevo índice 6)
+                    4: { cellWidth: 8, halign: 'center' }, // Hora Ent (Reducido)
+                    5: { cellWidth: 18, halign: 'center', minCellHeight: 18 }, // FIRMA (Ajustado a la versión V4)
+                    6: { cellWidth: 13, fontStyle: 'bold', halign: 'center' }, // Estado 
                     7: { cellWidth: 8, halign: 'center' }, // ID Ret
-                    8: { cellWidth: 10, halign: 'center' }, // Hora Ret
-                    9: { cellWidth: 30 }, // Obs. (ENTREGA)
-                    10: { cellWidth: 30 }  // Obs. (RETORNA)
+                    8: { cellWidth: 8, halign: 'center' }, // Hora Ret (Reducido)
+                    9: { cellWidth: 32 }, // Obs. (ENTREGA) (Ajustado)
+                    10: { cellWidth: 32 }  // Obs. (RETORNA) (Ajustado)
                 },
                 margin: { left: margin, right: margin },
 
@@ -728,10 +747,14 @@
                             doc.setTextColor(22, 163, 74); 
                         }
                     }
+                    // Centrar texto para la celda 'N/A' en la columna de firma (Índice 5)
+                     if (data.column.index === 5 && data.cell.section === 'body' && data.cell.text[0] === 'N/A') {
+                        data.cell.styles.halign = 'center';
+                        data.cell.styles.valign = 'middle'; 
+                    }
                 }
             });
 
-            // Guardar el PDF
             const filename = `Reporte_ControlLlaves_${new Date().toISOString().slice(0, 10)}.pdf`;
             doc.save(filename);
 
