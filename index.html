@@ -676,9 +676,7 @@
                 const hourRet = log.isReturned ? formatTimeForPdf(log.returnTime) : 'N/A';
                 const status = log.isReturned ? 'DEVUELTO' : 'PENDIENTE';
 
-                // Preparación de la imagen para autoTable
                 let signatureImage = null;
-                // Solo incluir la Data URL si es una firma real
                 if (log.checkoutSignature && log.checkoutSignature.length > 500) { 
                     signatureImage = log.checkoutSignature;
                 }
@@ -736,7 +734,7 @@
                     addReportHeaderAndFooter(doc, pageWidth, margin);
                 },
 
-                // CORRECCIÓN CLAVE: DIBUJAR LA IMAGEN DE LA FIRMA EN LA CELDA CORRESPONDIENTE
+                // CORRECCIÓN CLAVE: AJUSTE DE DIMENSIONES PARA EVITAR LA BARRA NEGRA
                 didDrawCell: (data) => {
                     // Columna de Firma (Índice 5) y solo en el cuerpo de la tabla
                     if (data.column.index === 5 && data.cell.section === 'body') {
@@ -747,16 +745,20 @@
                             const cellWidth = data.cell.width;
                             const cellHeight = data.cell.height;
 
-                            // Dibujar la imagen de la firma dentro de la celda
-                            // Usamos un padding pequeño (0.5) y las dimensiones exactas de la celda.
+                            // Ajustamos el padding (en mm)
                             const imgPadding = 0.5; 
+                            
+                            // Usar las dimensiones de la celda menos el doble del padding.
+                            const imgWidth = cellWidth - (2 * imgPadding);
+                            const imgHeight = cellHeight - (2 * imgPadding);
+                            
                             doc.addImage(
                                 firmaDataURL, 
                                 'JPEG', 
                                 data.cell.x + imgPadding, 
                                 data.cell.y + imgPadding, 
-                                cellWidth - (2 * imgPadding), 
-                                cellHeight - (2 * imgPadding)
+                                imgWidth, 
+                                imgHeight // Usamos la altura ajustada
                             );
                         } else if (firmaDataURL === 'N/A') {
                             // Centrar 'N/A' en la celda de la firma
