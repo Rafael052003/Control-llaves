@@ -16,38 +16,44 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f8fafc; /* Fondo muy suave gris claro */
+            background-color: #f1f5f9; /* Fondo muy suave gris claro (slate-100) */
         }
-        /* Estilos generales de la aplicación */
+        /* Colores y Contenedor Principal (Minimalista) */
         .app-container {
-            @apply max-w-5xl mx-auto p-4 md:p-10;
+            @apply max-w-4xl mx-auto p-4 md:p-8;
         }
         .card {
-            @apply bg-white p-6 md:p-8 rounded-3xl shadow-2xl border border-gray-100 transition-all duration-300;
+            /* Estilo plano y minimalista */
+            @apply bg-white p-6 md:p-8 rounded-lg shadow-sm border border-gray-200;
         }
         .btn-primary {
-            @apply px-8 py-3 font-bold text-white bg-indigo-700 rounded-xl shadow-lg hover:bg-indigo-800 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-indigo-400/70;
+            /* Azul Corporativo */
+            @apply px-8 py-3 font-bold text-white bg-blue-900 rounded-md hover:bg-blue-800 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-blue-300/70;
         }
         .btn-success {
-            @apply px-4 py-2 font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-emerald-300;
+            @apply px-4 py-2 font-semibold text-white bg-emerald-600 rounded-md hover:bg-emerald-700 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-emerald-300;
         }
         .btn-report {
-            @apply px-6 py-2.5 font-bold text-white bg-red-600 rounded-xl shadow-md hover:bg-red-700 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-red-400;
+            @apply px-6 py-2.5 font-bold text-white bg-red-700 rounded-md shadow-md hover:bg-red-800 transition-colors duration-200 focus:outline-none focus:ring-4 focus:ring-red-300;
         }
-        /* Estilo para los inputs mejorados */
+        /* Estilo para los inputs minimalistas (border-bottom) */
         .app-input {
-            @apply mt-1 block w-full border border-gray-300 rounded-xl shadow-inner p-3 bg-gray-50 focus:ring-indigo-500 focus:border-indigo-500 appearance-none transition-colors;
+            @apply mt-1 block w-full border-0 border-b-2 border-gray-300 bg-white p-2 focus:ring-0 focus:border-blue-900 appearance-none transition-colors duration-200;
+        }
+        /* Títulos de sección */
+        .section-title {
+             @apply text-xl font-extrabold text-blue-900 mb-6 pb-3 border-b-2 border-gray-200 flex items-center space-x-2;
         }
     </style>
 </head>
 <body>
 
-    <div id="login-modal" class="fixed inset-0 bg-gray-900 bg-opacity-90 flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-3xl shadow-3xl p-8 w-full max-w-md transform transition-transform duration-500 ease-out border-t-4 border-indigo-600">
-            <h3 class="text-3xl font-extrabold mb-2 text-indigo-700 text-center">🔐 Acceso de Agentes</h3>
-            <p class="text-gray-600 mb-6 text-center text-sm">Sistema de Control de Llaves Riba Smith</p>
+    <div id="login-modal" class="fixed inset-0 bg-gray-900 bg-opacity-95 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg shadow-2xl p-8 w-full max-w-md border-t-4 border-blue-900">
+            <h3 class="text-3xl font-extrabold mb-2 text-blue-900 text-center">🔑 Control de Llaves</h3>
+            <p class="text-gray-600 mb-8 text-center text-sm">Acceso de Agentes (Riba Smith)</p>
 
-            <form id="login-form" class="space-y-5">
+            <form id="login-form" class="space-y-6">
                 <div>
                     <label for="username" class="block text-sm font-semibold text-gray-700">Nombre de Agente</label>
                     <select id="username" name="username" required 
@@ -66,13 +72,13 @@
                     <label for="password" class="block text-sm font-semibold text-gray-700">Contraseña</label>
                     <input type="password" id="password" name="password" required 
                            class="app-input"
-                           placeholder="••••••••">
+                           placeholder="Contraseña de Agente">
                 </div>
 
-                <div id="login-error" class="hidden text-red-600 text-sm font-semibold">Credenciales incorrectas.</div>
+                <div id="login-error" class="hidden text-red-600 text-sm font-semibold pt-2">Credenciales incorrectas. Verifique nombre y contraseña.</div>
 
                 <button type="submit" class="btn-primary w-full mt-6">
-                    Iniciar Sesión Segura
+                    Iniciar Sesión
                 </button>
             </form>
         </div>
@@ -80,115 +86,120 @@
     
     <div id="main-app-content" class="app-container hidden">
 
-        <header class="text-center py-8 mb-6 bg-indigo-700 text-white rounded-3xl shadow-xl flex justify-between items-center px-6 md:px-10">
-            <h1 class="text-3xl md:text-4xl font-extrabold tracking-wider">🔑 Control de Llaves</h1>
-            <button id="logout-btn" onclick="handleLogout()" class="px-3 py-1.5 font-semibold text-xs bg-white text-indigo-700 rounded-lg hover:bg-gray-100 transition-colors shadow-md">
-                Cerrar Sesión
-            </button>
+        <header class="py-6 mb-8 border-b border-gray-300 flex justify-between items-center">
+            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-blue-900">Control de Activos</h1>
+            <div class="flex items-center space-x-4">
+                 <div class="flex items-center space-x-2 text-sm text-gray-600">
+                    <p class="font-semibold text-gray-500">ID:</p>
+                    <span id="security-id" class="font-mono text-xs bg-gray-200 text-blue-900 p-2 rounded-md font-bold"></span>
+                </div>
+                <button id="logout-btn" onclick="handleLogout()" class="px-4 py-2 font-semibold text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
+                    Cerrar Sesión
+                </button>
+            </div>
         </header>
 
-        <div class="mb-8 flex justify-between items-center bg-white p-4 rounded-xl shadow-md border-l-4 border-indigo-500">
-             <div class="flex items-center space-x-2 text-sm text-gray-600">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg>
-                <p>ID de Agente Activo:</p>
-                <span id="security-id" class="font-mono text-xs bg-indigo-100 text-indigo-700 p-2 rounded-lg font-bold"></span>
-            </div>
+        <div id="message-container"></div>
+        
+        <div class="mb-8 flex justify-end">
             <button id="end-day-report-btn" onclick="generateDailyReportPdf()" class="btn-report flex items-center space-x-2 text-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"></path><line x1="10" y1="13" x2="14" y2="13"></line><line x1="12" y1="17" x2="12" y2="17"></line></svg>
-                <span>Generar Reporte PDF</span>
+                <span>Terminar Día (Generar Reporte PDF)</span>
             </button>
         </div>
 
-        <div id="message-container"></div>
+        <div class="grid grid-cols-1 gap-12">
+            
+            <div id="checkout-section" class="card">
+                <h2 class="section-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" /></svg>
+                    <span>1. Registrar Entrega de Llave</span>
+                </h2>
 
-        <div id="checkout-section" class="card mb-12">
-            <h2 class="text-2xl font-extrabold text-indigo-700 mb-6 pb-3 border-b-2 border-indigo-100 flex items-center space-x-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" /></svg>
-                <span>Registrar Entrega de Llave</span>
-            </h2>
+                <form id="checkout-form" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <label for="userName" class="block text-sm font-semibold text-gray-700">Usuario que Solicita</label>
+                            <select id="userName" name="userName" required class="app-input">
+                                <option value="">-- Seleccione Usuario --</option>
+                                <option value="Rafael Ramos">Rafael Ramos</option>
+                                <option value="José Guevara">José Guevara</option>
+                                <option value="Ariel Bernal">Ariel Bernal</option>
+                                <option value="Oriel Aizprua">Oriel Aizprua</option>
+                                <option value="Leandro Pérez">Leandro Pérez</option>
+                                <option value="Samuel Reyes">Samuel Reyes</option>
+                            </select>
+                        </div>
 
-            <form id="checkout-form" class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="userName" class="block text-sm font-semibold text-gray-700">Usuario que Solicita</label>
-                        <select id="userName" name="userName" required class="app-input">
-                            <option value="">-- Seleccione Usuario --</option>
-                            <option value="Rafael Ramos">Rafael Ramos</option>
-                            <option value="José Guevara">José Guevara</option>
-                            <option value="Ariel Bernal">Ariel Bernal</option>
-                            <option value="Oriel Aizprua">Oriel Aizprua</option>
-                            <option value="Leandro Pérez">Leandro Pérez</option>
-                            <option value="Samuel Reyes">Samuel Reyes</option>
-                        </select>
+                        <div>
+                            <label for="keyRequested" class="block text-sm font-semibold text-gray-700">Llave/Activo Solicitado</label>
+                            <select id="keyRequested" name="keyRequested" required class="app-input">
+                                <option value="">-- Seleccione Activo --</option>
+                                <option value="Deposito">Deposito</option>
+                                <option value="Contenedor">Contenedor</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div>
-                        <label for="keyRequested" class="block text-sm font-semibold text-gray-700">Llave Solicitada</label>
-                        <select id="keyRequested" name="keyRequested" required class="app-input">
-                            <option value="">-- Seleccione Activo --</option>
-                            <option value="Deposito">Deposito</option>
-                            <option value="Contenedor">Contenedor</option>
+                        <label for="checkoutLocation" class="block text-sm font-semibold text-gray-700">Departamento de Destino</label>
+                        <select id="checkoutLocation" name="checkoutLocation" required class="app-input">
+                            <option value="">-- Seleccione Departamento --</option>
+                            <option value="Rimith">Rimith</option>
+                            <option value="Nevera">Nevera</option>
+                            <option value="Panaderia">Panadería</option>
+                            <option value="Estanteria">Estantería</option>
+                            <option value="Sanidad">Sanidad</option>
+                            <option value="Recibo">Recibo</option>
                         </select>
                     </div>
-                </div>
-
-                <div>
-                    <label for="checkoutLocation" class="block text-sm font-semibold text-gray-700">Departamento de Destino</label>
-                    <select id="checkoutLocation" name="checkoutLocation" required class="app-input">
-                        <option value="">-- Seleccione Departamento --</option>
-                        <option value="Rimith">Rimith</option>
-                        <option value="Nevera">Nevera</option>
-                        <option value="Panaderia">Panadería</option>
-                        <option value="Estanteria">Estantería</option>
-                        <option value="Sanidad">Sanidad</option>
-                        <option value="Recibo">Recibo</option>
-                    </select>
-                </div>
-                
-                <div class="py-2 border-t border-gray-100">
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Firma del Solicitante (Entregado)</label>
-                    <div class="border-2 border-indigo-200 rounded-xl bg-white p-1 h-40 shadow-inner">
-                        <canvas id="signature-pad-checkout" width="400" height="150" class="w-full h-full bg-white rounded-lg cursor-crosshair"></canvas>
+                    
+                    <div class="py-4 border-t border-gray-100">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Firma del Solicitante (Entregado)</label>
+                        <div class="border border-gray-300 rounded-md bg-white p-1 h-32 shadow-inner">
+                            <canvas id="signature-pad-checkout" width="400" height="120" class="w-full h-full bg-white rounded-sm cursor-crosshair"></canvas>
+                        </div>
+                        <button type="button" id="clear-signature-checkout" class="mt-3 px-3 py-1 text-xs font-semibold text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">Borrar Firma</button>
                     </div>
-                    <button type="button" id="clear-signature-checkout" class="mt-2 px-3 py-1 text-xs font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors shadow-sm">Borrar Firma</button>
-                </div>
-                
-                <div>
-                    <label for="checkoutObservation" class="block text-sm font-semibold text-gray-700">Observación (Opcional)</label>
-                    <textarea id="checkoutObservation" name="checkoutObservation" rows="2" class="app-input"></textarea>
-                </div>
-
-                <button type="submit" id="checkout-submit-btn" class="btn-primary w-full mt-8">
-                    <span id="submit-text">✅ Registrar Entrega Ahora</span>
-                    <span id="submit-loading" class="hidden flex items-center justify-center">
-                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        Guardando...
-                    </span>
-                </button>
-            </form>
-        </div>
-
-        <div id="pending-section" class="card bg-gray-50 border-gray-200">
-            <h2 class="text-2xl font-extrabold text-indigo-700 mb-6 pb-3 border-b-2 border-indigo-100 flex items-center space-x-2">
-                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>
-                <span>Llaves Pendientes de Devolución</span>
-            </h2>
-
-            <div id="key-list-container">
-                <div id="key-list-loading" class="text-center py-8 text-gray-500">
-                    <svg class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"></svg>
-                    Cargando historial de llaves...
-                </div>
-                <div id="pending-keys-list" class="space-y-4">
+                    
+                    <div>
+                        <label for="checkoutObservation" class="block text-sm font-semibold text-gray-700">Observación (Opcional)</label>
+                        <textarea id="checkoutObservation" name="checkoutObservation" rows="2" class="app-input"></textarea>
                     </div>
-                <div id="key-list-empty" class="hidden text-center py-8 text-gray-500">
-                    <p class="text-lg font-semibold text-emerald-600">🎉 ¡Todas las llaves han sido devueltas! No hay registros pendientes.</p>
+
+                    <button type="submit" id="checkout-submit-btn" class="btn-primary w-full mt-8">
+                        <span id="submit-text">✅ Registrar Entrega Ahora</span>
+                        <span id="submit-loading" class="hidden flex items-center justify-center">
+                            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            Guardando...
+                        </span>
+                    </button>
+                </form>
+            </div>
+
+            <div id="pending-section" class="card">
+                <h2 class="section-title">
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>
+                    <span>2. Llaves Pendientes de Devolución</span>
+                </h2>
+
+                <div id="key-list-container">
+                    <div id="key-list-loading" class="text-center py-8 text-gray-500">
+                        <svg class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-900 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"></svg>
+                        Cargando historial de llaves...
+                    </div>
+                    <div id="pending-keys-list" class="space-y-4">
+                        </div>
+                    <div id="key-list-empty" class="hidden text-center py-8 text-gray-500">
+                        <p class="text-lg font-semibold text-emerald-600">🎉 ¡Todas las llaves han sido devueltas! No hay registros pendientes.</p>
+                        <p class="text-sm text-gray-400 mt-1">Proceda a Generar el Reporte PDF para finalizar el turno.</p>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div id="return-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden items-center justify-center p-4 z-50">
-            <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md border-t-4 border-emerald-600">
+            <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-md border-t-4 border-emerald-600">
                 <h3 class="text-xl font-bold mb-4 text-emerald-700 border-b pb-2 flex items-center space-x-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-7.388 7.388A4 4 0 016.757 14H5v-2.043a4 4 0 011.172-2.828l7.386-7.386zM11.609 3.868l1.76-1.76c.4-.4 1.047-.4 1.447 0l1.76 1.76c.4.4.4 1.047 0 1.447l-1.76 1.76-1.447-1.447L12.56 5.315c-.4-.4-1.047-.4-1.447 0l-1.76 1.76 1.447 1.447-1.76 1.76L8.01 10.74l-2.09 2.09c-.4.4-1.047.4-1.447 0L2.71 11.33c-.4-.4-.4-1.047 0-1.447L9.492 2.18c.4-.4 1.047-.4 1.447 0z" /></svg>
                     <span>Confirmar Devolución</span>
@@ -213,8 +224,8 @@
                     </div>
 
                     <div class="flex justify-end space-x-3 pt-4">
-                        <button type="button" onclick="closeReturnModal()" class="px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-xl hover:bg-gray-300 transition-colors duration-200 shadow-sm">Cancelar</button>
-                        <button type="submit" id="confirm-return-btn" class="btn-success shadow-lg">
+                        <button type="button" onclick="closeReturnModal()" class="px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors duration-200">Cancelar</button>
+                        <button type="submit" id="confirm-return-btn" class="btn-success">
                             <span id="return-submit-text">Confirmar Devolución</span>
                             <span id="return-submit-loading" class="hidden flex items-center justify-center">
                                 <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -342,7 +353,7 @@
             if (type === 'success') { bgColor = 'bg-emerald-100 border-emerald-400 text-emerald-700'; icon = '✅'; }
 
             const msgDiv = document.createElement('div');
-            msgDiv.className = `p-4 rounded-xl shadow-lg border ${bgColor} mb-4 flex items-center space-x-3 transition-opacity duration-300`;
+            msgDiv.className = `p-4 rounded-lg shadow-sm border ${bgColor} mb-4 flex items-center space-x-3 transition-opacity duration-300`;
             msgDiv.innerHTML = `<span class="text-2xl">${icon}</span><p class="font-medium">${message}</p>`;
 
             container.innerHTML = '';
@@ -358,6 +369,44 @@
             const now = new Date();
             now.setHours(0, 0, 0, 0);
             return now.getTime();
+        }
+
+        // --- SOLUCIÓN CLAVE: REDIMENSIONAR FIRMA PARA EVITAR LA BARRA NEGRA EN PDF ---
+        /**
+         * Redimensiona la firma del canvas a un tamaño pequeño (100x40 píxeles) para 
+         * asegurar que jsPDF pueda procesarla correctamente sin la barra negra.
+         * @param {string} dataURL - La Data URL de la firma (image/png).
+         * @returns {string} La Data URL de la imagen redimensionada o null.
+         */
+        function getResizedSignature(dataURL) {
+            if (!dataURL) return null;
+
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Tamaño pequeño y fijo para el PDF (ej. 100px ancho x 40px alto)
+                    const targetWidth = 100; 
+                    const targetHeight = 40; 
+                    
+                    canvas.width = targetWidth;
+                    canvas.height = targetHeight;
+                    
+                    // Dibujar la imagen original en el nuevo canvas con las dimensiones objetivo
+                    ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+                    // Devolver la nueva Data URL, ahora ligera y redimensionada
+                    const resizedDataURL = canvas.toDataURL('image/png');
+                    resolve(resizedDataURL);
+                };
+                img.onerror = () => {
+                    console.error("Error al cargar la imagen de la firma para redimensionar.");
+                    resolve(null);
+                };
+                img.src = dataURL;
+            });
         }
 
         // --- 3. INITIALIZATION AND UI SETUP ---
@@ -385,7 +434,8 @@
                 window.addEventListener('resize', resizeCanvas);
 
                 signaturePadCheckout = new SignaturePad(canvasCheckout, {
-                    backgroundColor: 'rgb(255, 255, 255)' 
+                    backgroundColor: 'rgb(255, 255, 255)', 
+                    penColor: 'rgb(25, 29, 68)' // Azul Oscuro
                 });
 
                 document.getElementById('clear-signature-checkout').addEventListener('click', () => {
@@ -422,10 +472,14 @@
 
             const formData = new FormData(e.target);
             
-            // CORRECCIÓN CLAVE: Generar la Data URL de la firma con formato PNG (más estable para jsPDF)
-            const signatureDataURL = signaturePadCheckout ? 
+            // 1. Obtener la Data URL original de la firma como PNG
+            const originalSignatureDataURL = signaturePadCheckout ? 
                 signaturePadCheckout.toDataURL('image/png') : 
                 null;
+                
+            // 2. REDIMENSIONAR ANTES DE GUARDAR (SOLUCIÓN AL ERROR DEL PDF)
+            const resizedSignature = await getResizedSignature(originalSignatureDataURL);
+
 
             const newLog = {
                 id: generateUUID(), 
@@ -438,8 +492,8 @@
                 checkoutTime: Date.now(), 
                 checkoutUserId: securityId, 
                 
-                // GUARDAR FIRMA COMO Base64 PNG
-                checkoutSignature: signatureDataURL, 
+                // GUARDAR FIRMA PEQUEÑA Y OPTIMIZADA
+                checkoutSignature: resizedSignature, 
             };
 
             const logs = loadLogs();
@@ -480,16 +534,16 @@
                 const checkoutTimeFormatted = formatTimestamp(key.checkoutTime);
 
                 const keyCard = document.createElement('div');
-                keyCard.className = 'card bg-yellow-50 border-yellow-300 shadow-md flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0 p-4';
+                keyCard.className = 'card bg-yellow-50 border-l-4 border-yellow-500 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0 p-4';
                 keyCard.innerHTML = `
                     <div class="flex-1 w-full">
-                        <p class="text-xl font-extrabold text-indigo-800">${key.keyRequested}</p>
+                        <p class="text-xl font-extrabold text-gray-800">${key.keyRequested}</p>
                         <p class="text-sm text-gray-700 mb-1">
                             <span class="font-bold">Solicita:</span> ${key.userName} 
                             <span class="text-xs text-gray-500 ml-2">(${key.checkoutLocation})</span>
                         </p>
                         <p class="text-xs text-gray-500 mt-1">
-                            <span class="font-bold text-indigo-500">ENTREGA:</span> ${checkoutTimeFormatted} 
+                            <span class="font-bold text-blue-900">ENTREGA:</span> ${checkoutTimeFormatted} 
                             <span class="text-gray-400">por ${key.checkoutUserId}</span>
                         </p>
                         <p class="text-xs text-gray-500 italic mt-0.5">Obs: ${key.checkoutObservation}</p>
@@ -598,7 +652,7 @@
 
             // TÍTULOS
             doc.setFontSize(16).setFont('helvetica', 'bold');
-            doc.setTextColor(44, 62, 80); 
+            doc.setTextColor(28, 69, 135); // Azul Acero
             doc.text("GRUPO RIBA SMITH", pageWidth / 2, yPos, { align: 'center' });
             yPos += 6;
             doc.setFontSize(12).setFont('helvetica', 'normal');
@@ -606,7 +660,7 @@
             yPos += 5;
 
             doc.setFontSize(14).setFont('helvetica', 'bold');
-            doc.setTextColor(52, 152, 219); 
+            doc.setTextColor(41, 128, 185); // Azul Claro
             doc.text("REPORTE DIARIO DE CONTROL DE LLAVES", pageWidth / 2, yPos, { align: 'center' });
             yPos += 8;
 
@@ -654,7 +708,6 @@
                 return;
             }
 
-
             const logs = loadLogs();
             const startOfToday = getStartOfToday();
             const todayLogs = logs.filter(log => log.checkoutTime >= startOfToday)
@@ -685,20 +738,17 @@
                 "Obs. (RETORNA)"
             ];
 
-            // Filtrado estricto para la firma
+            // Preparar el cuerpo de la tabla
             const body = todayLogs.map(log => {
                 const hourEnt = formatTimeForPdf(log.checkoutTime);
                 const hourRet = log.isReturned ? formatTimeForPdf(log.returnTime) : 'N/A';
                 const status = log.isReturned ? 'DEVUELTO' : 'PENDIENTE';
 
                 let signatureImage = null;
-                // CORRECCIÓN CLAVE: Solo usar la firma si es un PNG válido, para ignorar formatos rotos viejos.
+                // Filtrado: SOLO se procesan firmas que sean PNGs (las nuevas, pequeñas y corregidas)
                 if (log.checkoutSignature && typeof log.checkoutSignature === 'string' && 
                    log.checkoutSignature.startsWith('data:image/png')) { 
                     signatureImage = log.checkoutSignature;
-                } else if (log.checkoutSignature && typeof log.checkoutSignature === 'string' && log.checkoutSignature.startsWith('data:image/jpeg')) {
-                     // Si es un JPEG, lo marcamos para que jsPDF lo intente renderizar como JPEG.
-                     signatureImage = log.checkoutSignature;
                 }
 
                 return [
@@ -707,7 +757,7 @@
                     log.checkoutLocation || 'N/A',
                     log.checkoutUserId || 'N/A', 
                     hourEnt,
-                    signatureImage || 'N/A', 
+                    signatureImage || 'N/A', // Firma optimizada o 'N/A'
                     status,
                     log.returnUserId || 'N/A', 
                     hourRet,
@@ -721,9 +771,9 @@
                 startY: currentY,
                 head: [headers],
                 body: body,
-                theme: 'striped', 
+                theme: 'grid', // Usamos grid para mayor formalidad
                 headStyles: { 
-                    fillColor: [44, 62, 80], 
+                    fillColor: [28, 69, 135], // Azul Acero
                     textColor: 255, 
                     fontStyle: 'bold',
                     fontSize: 7, 
@@ -740,7 +790,7 @@
                     2: { cellWidth: 14 }, // Depto (ENT)
                     3: { cellWidth: 8, halign: 'center' }, // ID Ent
                     4: { cellWidth: 8, halign: 'center' }, // Hora Ent
-                    5: { cellWidth: 18, halign: 'center', minCellHeight: 18, valign: 'middle' }, // FIRMA (Ajustado para la imagen)
+                    5: { cellWidth: 18, halign: 'center', minCellHeight: 12, valign: 'middle' }, // FIRMA (Ajustado para la imagen optimizada)
                     6: { cellWidth: 13, fontStyle: 'bold', halign: 'center' }, // Estado 
                     7: { cellWidth: 8, halign: 'center' }, // ID Ret
                     8: { cellWidth: 8, halign: 'center' }, // Hora Ret
@@ -753,36 +803,33 @@
                     addReportHeaderAndFooter(doc, pageWidth, margin);
                 },
 
-                // CORRECCIÓN CLAVE: AJUSTE DE DIMENSIONES Y TIPO DE IMAGEN
+                // Manejo de la imagen de firma optimizada
                 didDrawCell: (data) => {
                     // Columna de Firma (Índice 5) y solo en el cuerpo de la tabla
                     if (data.column.index === 5 && data.cell.section === 'body') {
                         const firmaDataURL = data.cell.raw; 
                         
-                        // 2. DIBUJAR LA FIRMA
-                        if (firmaDataURL && typeof firmaDataURL === 'string' && 
-                            (firmaDataURL.startsWith('data:image/png') || firmaDataURL.startsWith('data:image/jpeg'))) {
+                        if (firmaDataURL && typeof firmaDataURL === 'string' && firmaDataURL.startsWith('data:image/png')) {
                             
                             const cellWidth = data.cell.width;
                             const cellHeight = data.cell.height;
                             const imgPadding = 0.5; 
                             
+                            // Usar dimensiones de la celda menos padding
                             const imgWidth = cellWidth - (2 * imgPadding);
                             const imgHeight = cellHeight - (2 * imgPadding);
 
-                            // Detectar el tipo de imagen
-                            const imageType = firmaDataURL.startsWith('data:image/png') ? 'PNG' : 'JPEG';
-                            
+                            // La imagen ya está redimensionada, solo la dibujamos
                             doc.addImage(
                                 firmaDataURL, 
-                                imageType, // Usamos PNG para las nuevas firmas o JPEG si es una firma vieja
+                                'PNG', 
                                 data.cell.x + imgPadding, 
                                 data.cell.y + imgPadding, 
                                 imgWidth, 
-                                imgHeight // Forzamos la altura y ancho de la celda
+                                imgHeight
                             );
                         } else if (firmaDataURL === 'N/A') {
-                            // Centrar 'N/A' en la celda de la firma
+                            // Centrar 'N/A'
                             doc.setFontSize(7).setTextColor(100, 100, 100);
                             doc.text('N/A', data.cell.x + (data.cell.width / 2), data.cell.y + (data.cell.height / 2), {
                                  align: 'center', 
@@ -795,11 +842,11 @@
                     if (data.column.index === 6 && data.cell.section === 'body') { 
                         const status = data.cell.text[0];
                         if (status === 'PENDIENTE') {
-                            data.cell.styles.fillColor = [253, 230, 138]; /* Amarillo pastel */
-                            doc.setTextColor(180, 83, 9); /* Naranja oscuro */
+                            data.cell.styles.fillColor = [253, 242, 218]; // Amarillo/Crema
+                            doc.setTextColor(180, 83, 9); 
                         } else if (status === 'DEVUELTO') {
-                            data.cell.styles.fillColor = [209, 250, 229]; /* Verde pastel */
-                            doc.setTextColor(5, 150, 105); /* Verde esmeralda */
+                            data.cell.styles.fillColor = [220, 252, 231]; // Verde muy claro
+                            doc.setTextColor(5, 150, 105); 
                         }
                         data.cell.styles.fontStyle = 'bold';
                     }
