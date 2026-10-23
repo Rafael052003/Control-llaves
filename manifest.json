@@ -1,21 +1,20 @@
 {
-"name": "Control de Llaves RS (Local)",
-"short_name": "KeyLogLocal",
-"description": "App para el registro de activos y llaves (solo en este dispositivo).",
-"start_url": "./index.html",
-"display": "standalone",
-"background_color": "#eef2ff",
-"theme_color": "#4f46e5",
-"icons": [
-{
-"src": "https://www.google.com/search?q=https://placehold.co/192x192/4f46e5/ffffff/png%3Ftext%3DCL",
-"sizes": "192x192",
-"type": "image/png"
-},
-{
-"src": "https://www.google.com/search?q=https://placehold.co/512x512/4f46e5/ffffff/png%3Ftext%3DCL",
-"sizes": "512x512",
-"type": "image/png"
-}
-]
+  "id": "./",
+  "name": "Control de Llaves | Departamento de Seguridad",
+  "short_name": "Control Llaves",
+  "description": "Registro de entrega y devolución de llaves y activos del Departamento de Seguridad.",
+  "lang": "es-PA",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F1F5F9",
+  "theme_color": "#0b1f3a",
+  "categories": ["business", "productivity", "utilities"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
 }

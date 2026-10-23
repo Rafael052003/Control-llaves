@@ -2,117 +2,323 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Llaves - Riba Smith</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0b1f3a">
+    <meta name="description" content="Aplicación para registrar la entrega y devolución de llaves y activos del Departamento de Seguridad.">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Control de Llaves">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icons/icon-192.png" type="image/png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <title>Control de Llaves | Departamento de Seguridad</title>
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <!-- jsPDF + AutoTable -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script> 
-    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script> 
-
-    <link rel="manifest" href="manifest.json">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <!-- SignaturePad -->
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
 
     <style>
-        /* Tipografía y Base */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        
+        :root {
+            --navy: #0b1f3a;
+            --blue: #174a85;
+            --green: #047857;
+            --line: #dbe3ec;
+            --muted: #64748b;
+        }
+
+        * { box-sizing: border-box; }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #F0F4F8; /* Un gris muy claro, casi blanco */
-            color: #334155; /* Gris oscuro para el texto principal */
+            background-color: #F1F5F9;
+            color: #172033;
             min-height: 100vh;
+            margin: 0;
             display: flex;
             flex-direction: column;
         }
 
-        /* Contenedor Principal y Tarjetas (Cards) */
+        .hidden { display: none !important; }
+
         .app-container {
-            @apply max-w-5xl mx-auto p-4 md:p-8 flex-grow;
+            width: min(1200px, 100%);
+            margin: 0 auto;
+            padding: 1rem;
+            flex-grow: 1;
         }
+        @media (min-width: 768px) { .app-container { padding: 2rem; } }
+
+        /* --- TARJETAS CON ESTILO PREMIUM --- */
         .card {
-            /* Estilo elegante con sombra sutil */
-            @apply bg-white p-6 md:p-8 rounded-lg shadow-sm border border-gray-200;
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+            border: 1px solid #E2E8F0;
+            transition: box-shadow 0.3s ease;
         }
-        
-        /* Botones con degradado sutil */
-        .btn-primary {
-            @apply px-8 py-3 font-bold text-white bg-gradient-to-r from-blue-900 to-blue-700 rounded-md shadow-lg 
-                   hover:from-blue-800 hover:to-blue-600 transition-all duration-300 ease-in-out 
-                   focus:outline-none focus:ring-4 focus:ring-blue-300/70;
+        @media (min-width: 768px) { .card { padding: 2rem; } }
+
+        /* --- HEADER GLASSMORPHISM --- */
+        .main-header {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 2px 15px rgba(15, 23, 42, 0.04);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            transition: all 0.3s ease;
         }
-        .btn-success {
-            @apply px-4 py-2 font-semibold text-white bg-gradient-to-r from-emerald-600 to-emerald-500 rounded-md 
-                   hover:from-emerald-700 hover:to-emerald-600 transition-colors duration-200 
-                   focus:outline-none focus:ring-4 focus:ring-emerald-300;
-        }
-        .btn-report {
-            @apply px-6 py-2.5 font-bold text-white bg-gradient-to-r from-red-700 to-red-600 rounded-md shadow-md 
-                   hover:from-red-800 hover:to-red-700 transition-colors duration-200 
-                   focus:outline-none focus:ring-4 focus:ring-red-300;
+        @media (min-width: 768px) { .main-header { padding: 1rem 2rem; } }
+
+        /* --- BOTONES CON MICROINTERACCIONES --- */
+        .btn-primary, .btn-success, .btn-report, .btn-secondary {
+            border: none;
+            border-radius: 0.625rem;
+            padding: 0.75rem 1.25rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
         }
 
-        /* Estilo para los inputs con 'floating label' efecto */
+        .btn-primary {
+            background: linear-gradient(120deg, #102e55, #1e5b9e);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(23, 74, 133, 0.2);
+            padding: 0.875rem 1.5rem; /* Más alto para fácil toque */
+        }
+        .btn-primary:hover:not(:disabled) { filter: brightness(1.1); box-shadow: 0 6px 16px rgba(23, 74, 133, 0.3); }
+        .btn-primary:active:not(:disabled) { transform: scale(0.98); }
+
+        .btn-success {
+            background: #059669;
+            color: #fff;
+        }
+        .btn-success:hover:not(:disabled) { background: #047857; }
+        .btn-success:active:not(:disabled) { transform: scale(0.97); }
+
+        .btn-report {
+            background: linear-gradient(120deg, #b91c1c, #dc2626);
+            color: #fff;
+        }
+        .btn-report:hover:not(:disabled) { filter: brightness(1.1); }
+        .btn-report:active:not(:disabled) { transform: scale(0.98); }
+
+        .btn-secondary {
+            background: #F8FAFC;
+            color: #334155;
+            border: 1px solid #CBD5E1;
+        }
+        .btn-secondary:hover { background: #F1F5F9; border-color: #94A3B8; }
+        .btn-secondary:active { transform: scale(0.97); }
+
+        button:disabled { opacity: 0.55; cursor: not-allowed; transform: none !important; }
+
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 800;
+            color: var(--navy);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.875rem;
+            border-bottom: 1px solid #F1F5F9;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            letter-spacing: -0.01em;
+        }
+
+        /* --- INPUTS MÁS LIMPIOS --- */
+        .input-group { position: relative; }
+
         .app-input {
-            /* Hacer el input transparente para que el border-bottom se vea mejor */
-            @apply relative mt-1 block w-full border-0 border-b-2 border-gray-300 bg-transparent p-2 
-                   text-gray-800 placeholder-transparent focus:outline-none focus:ring-0 focus:border-blue-700 
-                   transition-colors duration-200;
+            margin-top: 0.35rem;
+            display: block;
+            width: 100%;
+            border: 1px solid #CBD5E1;
+            border-radius: 0.5rem;
+            background: #F8FAFC;
+            padding: 0.75rem 0.875rem;
+            color: #111827;
+            transition: all 0.2s;
+            outline: none;
+            font-size: 0.875rem;
         }
-        /* Comportamiento del label (se mueve y se encoge al escribir o enfocar) */
-        .app-input:focus + .input-label,
-        .app-input:not(:placeholder-shown) + .input-label {
-            @apply -top-7 text-xs text-blue-700;
-        }
-        /* Caso especial para el select, ya que placeholder-shown no aplica */
-        select.app-input:valid + .input-label {
-            @apply -top-7 text-xs text-blue-700;
+        .app-input:hover { background: #FFFFFF; }
+        .app-input:focus {
+            background: #FFFFFF;
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
         }
 
         .input-label {
-            /* Posicionamiento y transiciones del label */
-            @apply absolute left-0 -top-1 text-sm text-gray-500 pointer-events-none 
-                   transition-all duration-200 ease-in-out;
-        }
-        .input-group {
-            @apply relative pt-6; /* Espacio para el label flotante */
-        }
-
-        /* Títulos de sección */
-        .section-title {
-             @apply text-2xl font-extrabold text-blue-900 mb-6 pb-4 border-b-2 border-gray-200 flex items-center space-x-3;
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #64748B;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
         }
 
-        /* Estilo para el header fijo */
-        .main-header {
-            @apply sticky top-0 z-40 bg-white shadow-sm py-4 px-6 md:px-8 border-b border-gray-200;
-        }
-
-        /* Fondo del modal de login con degradado */
-        #login-modal .modal-content {
-            background-image: linear-gradient(to bottom right, #FFFFFF, #F8F8F8); /* Degradado suave */
-            @apply border-t-4 border-blue-800;
-        }
-
-        /* Estilo para la lista de pendientes (Tarjetas con borde lateral) */
+        /* --- TARJETAS PENDIENTES CON ALERTA DINÁMICA --- */
         .key-pending-card {
-            @apply bg-white border-l-4 border-yellow-500 shadow-md p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0 transition-shadow duration-300 hover:shadow-lg;
+            background: #fff;
+            border: 1px solid #E2E8F0;
+            border-left: 5px solid #F59E0B;
+            border-radius: 0.75rem;
+            padding: 1.125rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            box-shadow: 0 2px 5px rgba(15, 23, 42, 0.02);
+            transition: all 0.25s ease;
+            animation: slideIn 0.3s ease-out forwards;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .key-pending-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06); }
+        .key-pending-card.alert-danger { border-left-color: #EF4444; background: #FEF2F2; }
+        
+        @media (min-width: 640px) {
+            .key-pending-card { flex-direction: row; justify-content: space-between; align-items: center; }
+        }
+
+        /* --- ZONA DE FIRMA --- */
+        .signature-wrap {
+            height: 140px;
+            border: 2px dashed #CBD5E1;
+            border-radius: 0.75rem;
+            background: #FFFFFF;
+            background-image: radial-gradient(#CBD5E1 1px, transparent 1px);
+            background-size: 20px 20px;
+            overflow: hidden;
+            position: relative;
+            transition: border-color 0.2s;
+        }
+        .signature-wrap:focus-within, .signature-wrap.active { border-color: #3B82F6; background: #FFF; }
+        .signature-wrap canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            touch-action: none;
+            position: relative;
+            z-index: 2;
+        }
+        .signature-hint {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94A3B8;
+            font-size: 0.875rem;
+            font-weight: 500;
+            pointer-events: none;
+            z-index: 1;
+            transition: opacity 0.3s;
+        }
+
+        /* --- LOGIN MODAL --- */
+        #login-modal {
+            background: linear-gradient(135deg, #08172b, #122d50);
+        }
+        .login-card {
+            background: #FFFFFF;
+            border-top: 5px solid #174a85;
+            border-radius: 1.25rem;
+            box-shadow: 0 25px 70px rgba(0,0,0,0.4);
+            padding: 2.5rem 2rem;
+            width: min(440px, 100%);
+        }
+
+        /* --- RETURN MODAL --- */
+        #return-modal {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        /* --- TABLA MODERNA --- */
+        .modern-table { width: 100%; text-align: left; border-collapse: separate; border-spacing: 0; }
+        .modern-table th {
+            background: #F8FAFC;
+            color: #64748B;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.875rem 1rem;
+            border-bottom: 1px solid #E2E8F0;
+        }
+        .modern-table td {
+            padding: 0.875rem 1rem;
+            border-bottom: 1px solid #F1F5F9;
+            font-size: 0.8125rem;
+            color: #334155;
+        }
+        .modern-table tbody tr { transition: background-color 0.15s ease; }
+        .modern-table tbody tr:hover { background-color: #F8FAFC; }
+        .modern-table tbody tr:last-child td { border-bottom: none; }
+
+        .status-pill {
+            display: inline-flex;
+            padding: 0.25rem 0.625rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+        }
+        .status-pending { background: #FEF3C7; color: #92400E; }
+        .status-returned { background: #D1FAE5; color: #065F46; }
+
+        .action-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: flex-end;
         }
     </style>
 </head>
 <body>
 
-    <div id="login-modal" class="fixed inset-0 bg-gray-900 bg-opacity-95 flex items-center justify-center p-4 z-50">
-        <div class="modal-content rounded-lg shadow-2xl p-8 w-full max-w-md transform transition-transform duration-500 ease-out">
+    <!-- ==================== LOGIN MODAL ==================== -->
+    <div id="login-modal" class="fixed inset-0 flex items-center justify-center p-4 z-50">
+        <div class="login-card">
             <div class="text-center mb-8">
-                <h3 class="text-3xl font-extrabold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-900 to-blue-700">
-                    🔑 Control de Activos
-                </h3>
-                <p class="text-gray-600 text-sm">Acceso para Agentes de Seguridad Riba Smith</p>
+                <div class="mx-auto w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-3 border border-blue-100 shadow-[0_0_20px_rgba(59,130,246,0.2)]">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-900" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-black text-slate-900 tracking-tight">Control de Activos</h1>
+                <p class="text-xs text-slate-500 font-medium mt-1">Departamento de Seguridad</p>
             </div>
 
-            <form id="login-form" class="space-y-6">
+            <form id="login-form" class="space-y-5">
                 <div class="input-group">
-                    <select id="username" name="username" required 
-                           class="app-input" placeholder=" ">
+                    <label for="username" class="input-label">Oficial de Seguridad</label>
+                    <select id="username" name="username" required class="app-input">
                         <option value="">-- Seleccione su Nombre --</option>
                         <option value="Rafael Ramos">Rafael Ramos</option>
                         <option value="José Guevara">José Guevara</option>
@@ -121,98 +327,149 @@
                         <option value="Leandro Pérez">Leandro Pérez</option>
                         <option value="Samuel Reyes">Samuel Reyes</option>
                     </select>
-                    <label for="username" class="input-label">Nombre de Agente</label>
                 </div>
 
                 <div class="input-group">
-                    <input type="password" id="password" name="password" required 
-                           class="app-input"
-                           placeholder=" ">
                     <label for="password" class="input-label">Contraseña</label>
+                    <input type="password" id="password" name="password" required class="app-input" placeholder="Ingrese contraseña">
                 </div>
 
-                <div id="login-error" class="hidden text-red-600 text-sm font-semibold pt-2">Credenciales incorrectas. Verifique nombre y contraseña.</div>
+                <div id="login-error" class="hidden text-red-600 text-xs font-bold text-center" role="alert">
+                    Credenciales incorrectas. Verifique e intente nuevamente.
+                </div>
 
-                <button type="submit" class="btn-primary w-full mt-8">
-                    Iniciar Sesión
+                <button type="submit" class="btn-primary w-full mt-2">
+                    <span>Acceder al Sistema</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                 </button>
             </form>
         </div>
     </div>
-    
+
+    <!-- ==================== MAIN APP ==================== -->
     <div id="main-app-content" class="flex flex-col flex-grow hidden">
 
-        <header class="main-header flex justify-between items-center">
-            <div class="flex items-center space-x-4">
-                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-900 to-blue-700">
-                    Riba Smith
-                </h1>
-                <span class="hidden md:block text-gray-400">|</span>
-                <span class="hidden md:block text-lg font-medium text-gray-600">Control de Llaves</span>
+        <header class="main-header">
+            <div class="flex items-center space-x-3">
+                <div class="bg-blue-900 text-white p-2.5 rounded-xl shadow-md">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-black text-slate-900 leading-none tracking-tight">
+                        Control de Llaves
+                    </h1>
+                    <span class="text-xs text-slate-500 font-semibold tracking-wide">Departamento de Seguridad</span>
+                </div>
             </div>
             
             <div class="flex items-center space-x-4">
-                 <div class="flex items-center space-x-2 text-sm text-gray-600">
-                    <p class="font-semibold text-gray-500">ID:</p>
-                    <span id="security-id" class="font-mono text-xs bg-gray-100 text-blue-800 p-2 rounded-md font-bold border border-gray-200"></span>
+                <div class="hidden sm:flex flex-col items-end text-xs">
+                    <span class="text-slate-400 font-medium">Oficial Activo:</span>
+                    <span id="security-id" class="font-mono text-slate-800 font-bold bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200 shadow-sm"></span>
                 </div>
-                <button id="logout-btn" onclick="handleLogout()" class="px-4 py-2 font-semibold text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
-                    Cerrar Sesión
-                </button>
+                <div class="flex items-center gap-2">
+                    <button id="install-app-btn" class="btn-primary py-2 px-3 text-xs font-bold hidden" type="button" aria-label="Instalar aplicación">Instalar app</button>
+                    <button id="logout-btn" class="btn-secondary py-2 px-4 text-xs font-bold">Salir</button>
+                </div>
             </div>
         </header>
 
         <div class="app-container">
-
-            <div id="message-container" class="mb-6"></div>
+            <div id="message-container" class="mb-5" aria-live="polite"></div>
             
-            <div class="mb-10 flex justify-end">
-                <button id="end-day-report-btn" onclick="generateDailyReportPdf()" class="btn-report flex items-center space-x-2 text-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"></path><line x1="10" y1="13" x2="14" y2="13"></line><line x1="12" y1="17" x2="12" y2="17"></line></svg>
-                    <span>Generar Reporte del Día (PDF)</span>
-                </button>
+            <!-- Dashboard Stats & Toolbar -->
+            <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-900 tracking-tight">Panel de Operaciones</h2>
+                    <p id="today-label" class="text-sm text-slate-500 font-medium mt-1"></p>
+                </div>
+
+                <div class="action-toolbar">
+                    <button id="export-backup-btn" class="btn-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                        <span>Respaldar</span>
+                    </button>
+                    <label for="import-backup-input" class="btn-secondary cursor-pointer">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                        <span>Restaurar</span>
+                    </label>
+                    <input type="file" id="import-backup-input" accept="application/json" class="hidden">
+                    <button id="end-day-report-btn" class="btn-report">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        <span>Generar Reporte PDF</span>
+                    </button>
+                </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <!-- Stats Bar (Rediseñado con SVGs en lugar de emojis) -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex justify-between items-center transition-transform hover:-translate-y-0.5">
+                    <div>
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Movimientos Hoy</p>
+                        <p id="stat-today" class="text-3xl font-black text-slate-900 mt-1">0</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                    </div>
+                </div>
+                <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex justify-between items-center transition-transform hover:-translate-y-0.5">
+                    <div>
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Pendientes</p>
+                        <p id="stat-pending" class="text-3xl font-black text-amber-600 mt-1">0</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                </div>
+                <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex justify-between items-center transition-transform hover:-translate-y-0.5">
+                    <div>
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Devueltas Hoy</p>
+                        <p id="stat-returned" class="text-3xl font-black text-emerald-600 mt-1">0</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
                 
+                <!-- CHECKOUT FORM -->
                 <div id="checkout-section" class="card">
                     <h2 class="section-title">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-700" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" /></svg>
-                        <span>Registrar Entrega de Llave</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-800" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" /></svg>
+                        <span>Registrar Salida de Llave</span>
                     </h2>
 
-                    <form id="checkout-form" class="space-y-6">
-                        
+                    <form id="checkout-form" class="space-y-5">
                         <div class="input-group">
-                            <input type="text" id="userName" name="userName" required 
-                                   class="app-input" placeholder=" " list="knownUsersList">
-                            <label for="userName" class="input-label">Usuario que Solicita</label>
+                            <label for="userName" class="input-label">Nombre del Solicitante</label>
+                            <input type="text" id="userName" name="userName" required class="app-input" placeholder="Nombre completo" list="knownUsersList">
                             <datalist id="knownUsersList">
-                                <option value="Rafael Ramos">
-                                <option value="José Guevara">
-                                <option value="Ariel Bernal">
-                                <option value="Oriel Aizprua">
-                                <option value="Leandro Pérez">
-                                <option value="Samuel Reyes">
-                                <option value="Gerencia">
-                                <option value="Supervisor">
-                                <option value="Personal de Limpieza">
+                                <option value="Gerencia"></option>
+                                <option value="Supervisor"></option>
+                                <option value="Personal de Limpieza"></option>
+                                <option value="Mantenimiento"></option>
                             </datalist>
                         </div>
 
-                        <div class="grid grid-cols-1 gap-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             <div class="input-group">
-                                <select id="keyRequested" name="keyRequested" required class="app-input" placeholder=" ">
-                                    <option value="">-- Seleccione Activo --</option>
+                                <label for="keyRequested" class="input-label">Llave / Activo</label>
+                                <select id="keyRequested" name="keyRequested" required class="app-input">
+                                    <option value="">-- Seleccione --</option>
                                     <option value="Deposito">Deposito</option>
                                     <option value="Contenedor">Contenedor</option>
+                                    <option value="Oficina">Oficina</option>
                                 </select>
-                                <label for="keyRequested" class="input-label">Llave/Activo Solicitado</label>
                             </div>
 
                             <div class="input-group">
-                                <select id="checkoutLocation" name="checkoutLocation" required class="app-input" placeholder=" ">
-                                    <option value="">-- Seleccione Departamento --</option>
+                                <label for="checkoutLocation" class="input-label">Destino / Departamento</label>
+                                <select id="checkoutLocation" name="checkoutLocation" required class="app-input">
+                                    <option value="">-- Seleccione --</option>
                                     <option value="Rimith">Rimith</option>
                                     <option value="Nevera">Nevera</option>
                                     <option value="Panaderia">Panadería</option>
@@ -220,86 +477,131 @@
                                     <option value="Sanidad">Sanidad</option>
                                     <option value="Recibo">Recibo</option>
                                 </select>
-                                <label for="checkoutLocation" class="input-label">Departamento de Destino</label>
                             </div>
                         </div>
                         
-                        <div class="py-4 border-t border-gray-100 mt-6">
-                            <p class="block text-sm font-semibold text-gray-700 mb-2">Firma del Solicitante (Entregado)</p>
-                            <div class="border border-gray-300 rounded-md bg-gray-50 p-1 h-32 shadow-inner">
-                                <canvas id="signature-pad-checkout" width="400" height="120" class="w-full h-full bg-white rounded-sm cursor-crosshair"></canvas>
+                        <div class="pt-2">
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="input-label mb-0">Firma del Solicitante <span class="text-red-500">*</span></label>
+                                <button type="button" id="clear-signature-checkout" class="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors">Borrar Firma</button>
                             </div>
-                            <button type="button" id="clear-signature-checkout" class="mt-3 px-3 py-1 text-xs font-semibold text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">Borrar Firma</button>
+                            <div class="signature-wrap" id="signature-container">
+                                <div class="signature-hint" id="signature-hint">Firmar aquí</div>
+                                <canvas id="signature-pad-checkout"></canvas>
+                            </div>
                         </div>
                         
                         <div class="input-group">
-                            <textarea id="checkoutObservation" name="checkoutObservation" rows="2" class="app-input" placeholder=" "></textarea>
-                            <label for="checkoutObservation" class="input-label">Observación (Opcional)</label>
+                            <label for="checkoutObservation" class="input-label">Notas Adicionales (Opcional)</label>
+                            <textarea id="checkoutObservation" name="checkoutObservation" rows="2" class="app-input" placeholder="Observaciones de entrega..."></textarea>
                         </div>
 
-                        <button type="submit" id="checkout-submit-btn" class="btn-primary w-full mt-8">
-                            <span id="submit-text">✅ Registrar Entrega Ahora</span>
+                        <button type="submit" id="checkout-submit-btn" class="btn-primary w-full mt-2">
+                            <span id="submit-text">Registrar Entrega</span>
                             <span id="submit-loading" class="hidden flex items-center justify-center">
                                 <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                Guardando...
+                                Procesando...
                             </span>
                         </button>
                     </form>
                 </div>
 
-                <div id="pending-section" class="card">
-                    <h2 class="section-title">
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-orange-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>
-                        <span>Llaves Pendientes de Devolución</span>
-                    </h2>
+                <!-- PENDING SECTION -->
+                <div id="pending-section" class="card bg-slate-50/40">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-5 border-b border-slate-200 pb-3">
+                        <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" /></svg>
+                            <span>Llaves en Tránsito</span>
+                        </h2>
+                        <input type="text" id="search-pending" class="app-input sm:max-w-[200px] text-xs !py-2 !bg-white" placeholder="Buscar...">
+                    </div>
 
                     <div id="key-list-container">
-                        <div id="key-list-loading" class="text-center py-8 text-gray-500">
-                            <svg class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"></svg>
-                            Cargando historial de llaves...
-                        </div>
-                        <div id="pending-keys-list" class="space-y-4">
+                        <div id="pending-keys-list" class="space-y-3"></div>
+                        <div id="key-list-empty" class="hidden text-center py-12">
+                            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 mb-4 shadow-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
                             </div>
-                        <div id="key-list-empty" class="hidden text-center py-8 text-gray-500">
-                            <p class="text-lg font-semibold text-emerald-600">🎉 ¡Todas las llaves han sido devueltas! </p>
-                            <p class="text-sm text-gray-400 mt-1">Puede generar el Reporte PDF para finalizar el turno.</p>
+                            <p class="text-base font-bold text-slate-800">Todo en orden</p>
+                            <p class="text-xs text-slate-500 mt-1">No hay llaves pendientes de devolución en este momento.</p>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- HISTORY SECTION -->
+            <div class="card mt-8">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 border-b border-slate-100 pb-4">
+                    <h2 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                        <span>Actividad Reciente del Día</span>
+                    </h2>
+                    <input type="text" id="search-history" class="app-input sm:max-w-[250px] text-xs !py-2 !bg-white" placeholder="Filtrar por nombre, activo...">
+                </div>
+
+                <div class="overflow-x-auto rounded-lg border border-slate-200">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>Hora Ent.</th>
+                                <th>Activo</th>
+                                <th>Solicitante</th>
+                                <th>Departamento</th>
+                                <th>Oficial Salida</th>
+                                <th class="text-center">Estado</th>
+                                <th>Hora Dev.</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-body"></tbody>
+                    </table>
+                </div>
+                <p id="history-empty" class="hidden text-center text-slate-400 py-8 text-xs font-medium">Sin actividad registrada el día de hoy.</p>
+            </div>
+            
+            <footer class="mt-10 mb-4 text-center text-xs text-slate-400 font-medium">
+                Departamento de Seguridad · Control de Activos
+            </footer>
         </div>
 
-        <div id="return-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden items-center justify-center p-4 z-50">
-            <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-md border-t-4 border-emerald-600">
-                <h3 class="text-xl font-bold mb-4 text-emerald-700 border-b pb-2 flex items-center space-x-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-7.388 7.388A4 4 0 016.757 14H5v-2.043a4 4 0 011.172-2.828l7.386-7.386zM11.609 3.868l1.76-1.76c.4-.4 1.047-.4 1.447 0l1.76 1.76c.4.4.4 1.047 0 1.447l-1.76 1.76-1.447-1.447L12.56 5.315c-.4-.4-1.047-.4-1.447 0l-1.76 1.76 1.447 1.447-1.76 1.76L8.01 10.74l-2.09 2.09c-.4.4-1.047.4-1.447 0L2.71 11.33c-.4-.4-.4-1.047 0-1.447L9.492 2.18c.4-.4 1.047-.4 1.447 0z" /></svg>
-                    <span>Confirmar Devolución de Llave</span>
-                </h3>
-                <p class="text-gray-600 mb-2">Activo: <strong id="modal-key-name" class="text-emerald-600 font-extrabold"></strong></p>
-                <p class="text-gray-500 text-sm mb-4">Solicitada por: <span id="modal-user-name" class="font-semibold"></span></p>
+        <!-- RETURN MODAL -->
+        <div id="return-modal" class="fixed inset-0 hidden items-center justify-center p-4 z-50">
+            <div class="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-md border-t-4 border-emerald-500">
+                <div class="flex items-center space-x-3 mb-5 border-b border-slate-100 pb-4">
+                    <div class="bg-emerald-100 p-2.5 rounded-full text-emerald-700 shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-900 tracking-tight">Registrar Devolución</h3>
+                        <p class="text-xs text-slate-500 font-medium mt-0.5">Confirme los detalles de recepción del activo</p>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-50 p-4 rounded-xl mb-5 border border-slate-200">
+                    <p class="text-xs text-slate-500 mb-1">Activo: <strong id="modal-key-name" class="text-slate-900 text-sm font-bold ml-1"></strong></p>
+                    <p class="text-xs text-slate-500">Entregado a: <span id="modal-user-name" class="font-medium text-slate-900 ml-1"></span></p>
+                </div>
 
-                <form id="return-form" class="space-y-4">
+                <form id="return-form" class="space-y-5">
                     <div class="input-group">
-                        <select id="returnLocation" name="returnLocation" required class="app-input" placeholder=" ">
-                            <option value="">-- Seleccione Lugar --</option>
+                        <label for="returnLocation" class="input-label">Lugar / Recibido por</label>
+                        <select id="returnLocation" name="returnLocation" required class="app-input">
+                            <option value="">-- Seleccione --</option>
                             <option value="Seguridad Interno">Seguridad Interno</option>
                             <option value="Oficina de seguridad">Oficina de seguridad</option>
                             <option value="Entregada a otro personal">Entregada a otro personal</option>
-                            </select>
-                        <label for="returnLocation" class="input-label">Lugar de Devolución</label>
+                        </select>
                     </div>
 
                     <div class="input-group">
-                        <textarea id="returnObservation" name="returnObservation" rows="2" class="app-input" placeholder=" "></textarea>
-                        <label for="returnObservation" class="input-label">Observación de Devolución (Opcional)</label>
+                        <label for="returnObservation" class="input-label">Novedades / Observaciones (Opcional)</label>
+                        <textarea id="returnObservation" name="returnObservation" rows="2" class="app-input" placeholder="Notas de recepción..."></textarea>
                     </div>
 
-                    <div class="flex justify-end space-x-3 pt-4">
-                        <button type="button" onclick="closeReturnModal()" class="px-4 py-2 font-semibold text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors duration-200">Cancelar</button>
-                        <button type="submit" id="confirm-return-btn" class="btn-success">
-                            <span id="return-submit-text">Confirmar Devolución</span>
+                    <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100 mt-2">
+                        <button type="button" id="cancel-return-btn" class="btn-secondary">Cancelar</button>
+                        <button type="submit" id="confirm-return-btn" class="btn-success px-6">
+                            <span id="return-submit-text">Confirmar Recibido</span>
                             <span id="return-submit-loading" class="hidden flex items-center justify-center">
-                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                                 Procesando...
                             </span>
                         </button>
@@ -307,80 +609,38 @@
                 </form>
             </div>
         </div>
-
     </div>
 
     <script>
-        const STORAGE_KEY = 'keyControlLogs';
-        const SESSION_KEY = 'currentSecurityId';
+        // ============================================================
+        // CONFIGURACIÓN Y ESTADO GLOBAL
+        // ============================================================
+        const STORAGE_KEY = 'dept_seguridad_llaves_logs_v3';
+        const SESSION_KEY = 'dept_seguridad_current_id';
 
-        // --- Nombres de Guardia de Seguridad y sus credenciales ---
         const VALID_USERS = {
-            'Rafael Ramos': { password: '1234', id: 'RR 19075' },
-            'José Guevara': { password: '1234', id: 'JG 5604' },
-            'Ariel Bernal': { password: '1234', id: 'AB 22750' },
+            'Rafael Ramos':  { password: '1234', id: 'RR 19075' },
+            'José Guevara':  { password: '1234', id: 'JG 5604' },
+            'Ariel Bernal':  { password: '1234', id: 'AB 22750' },
             'Oriel Aizprua': { password: '1234', id: 'OA 17411' },
             'Leandro Pérez': { password: '1234', id: 'LP 26511' },
-            'Samuel Reyes': { password: '1234', id: 'SR 26113' }
+            'Samuel Reyes':  { password: '1234', id: 'SR 26113' }
         };
 
-        let securityId = null; 
-        let signaturePadCheckout; 
+        let securityId = null;
+        let signaturePadCheckout = null;
+        let currentEditingDocId = null;
 
-        // --- 1. AUTHENTICATION FUNCTIONS ---
-
-        function updateUIForLogin(id) {
-            securityId = id;
-            document.getElementById('security-id').textContent = id;
-            document.getElementById('main-app-content').classList.remove('hidden');
-            document.getElementById('login-modal').classList.add('hidden');
-            renderKeyList(); 
-        }
-
-        function handleLogin(e) {
-            e.preventDefault();
-
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value.trim();
-            const errorDiv = document.getElementById('login-error');
-
-            if (VALID_USERS[username] && VALID_USERS[username].password === password) {
-                sessionStorage.setItem(SESSION_KEY, VALID_USERS[username].id);
-                updateUIForLogin(VALID_USERS[username].id);
-                errorDiv.classList.add('hidden');
-                // Buscamos el nombre del agente por el ID para el mensaje
-                const agentName = Object.keys(VALID_USERS).find(key => VALID_USERS[key].id === VALID_USERS[username].id) || username;
-                showMessage(`Bienvenido, ${agentName}! (ID: ${VALID_USERS[username].id})`, 'success');
-            } else {
-                errorDiv.classList.remove('hidden');
-            }
-        }
-
-        window.handleLogout = function() {
-            sessionStorage.removeItem(SESSION_KEY);
-            securityId = null;
-            document.getElementById('main-app-content').classList.add('hidden');
-            document.getElementById('login-modal').classList.remove('hidden');
-            showMessage("Sesión cerrada correctamente.", 'info');
-        }
-
-        function checkLoginStatus() {
-            const storedId = sessionStorage.getItem(SESSION_KEY);
-            if (storedId && Object.values(VALID_USERS).some(user => user.id === storedId)) {
-                updateUIForLogin(storedId);
-            } else {
-                document.getElementById('login-modal').classList.remove('hidden');
-                document.getElementById('main-app-content').classList.add('hidden');
-            }
-        }
-
-
-        // --- 2. UTILITY FUNCTIONS ---
+        // ============================================================
+        // UTILIDADES
+        // ============================================================
+        const $ = id => document.getElementById(id);
 
         function generateUUID() {
-            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-                return v.toString(16);
+            if (window.crypto?.randomUUID) return crypto.randomUUID();
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                const r = Math.random() * 16 | 0;
+                return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
             });
         }
 
@@ -388,8 +648,8 @@
             try {
                 const json = localStorage.getItem(STORAGE_KEY);
                 return json ? JSON.parse(json) : [];
-            } catch (error) {
-                console.error("Error al cargar logs de localStorage:", error);
+            } catch (e) {
+                console.error("Error al cargar logs:", e);
                 return [];
             }
         }
@@ -397,568 +657,774 @@
         function saveLogs(logs) {
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
-            } catch (error) {
-                console.error("Error al guardar logs en localStorage:", error);
-                showMessage("Error al guardar datos. El almacenamiento local está lleno.", 'error');
+                return true;
+            } catch (e) {
+                console.error("Error al guardar logs:", e);
+                showMessage("Almacenamiento lleno. Exporte un backup para liberar memoria.", 'error');
+                return false;
             }
         }
 
-        function formatTimestamp(timestamp) {
-            if (!timestamp) return 'N/A';
-            const date = new Date(timestamp);
-            const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
-            const timeOptions = { hour: '2-digit', minute: '2-digit' };
-
-            return `${date.toLocaleDateString('es-ES', dateOptions)} ${date.toLocaleTimeString('es-ES', timeOptions)}`;
+        function formatTimestamp(ts) {
+            if (!ts) return 'N/A';
+            const d = new Date(ts);
+            return `${d.toLocaleDateString('es-PA', { month: 'short', day: 'numeric' })} ${d.toLocaleTimeString('es-PA', { hour: '2-digit', minute: '2-digit' })}`;
         }
 
-        function formatTimeForPdf(timestamp) {
-            if (!timestamp) return 'N/A';
-            const date = new Date(timestamp);
-            return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
+        function formatTimeForPdf(ts) {
+            if (!ts) return '';
+            try {
+                return new Date(ts).toLocaleTimeString('es-PA', { hour: '2-digit', minute: '2-digit', hour12: false });
+            } catch {
+                return '';
+            }
+        }
+
+        function safeDateString(d) {
+            try {
+                return d.toLocaleDateString('es-PA', {
+                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                });
+            } catch {
+                return d.toLocaleDateString();
+            }
+        }
+
+        function timeAgo(ts) {
+            const diff = Date.now() - ts;
+            const mins = Math.floor(diff / 60000);
+            if (mins < 60) return `Hace ${mins} min`;
+            const hrs = Math.floor(mins / 60);
+            const remMins = mins % 60;
+            return `Hace ${hrs}h ${remMins}m`;
         }
 
         function showMessage(message, type = 'info') {
-            const container = document.getElementById('message-container');
-            let bgColor = 'bg-blue-100 border-blue-400 text-blue-700';
+            const container = $('message-container');
+            let bg = 'bg-blue-50 border-blue-200 text-blue-800';
             let icon = 'ℹ️';
-            if (type === 'error') { bgColor = 'bg-red-100 border-red-400 text-red-700'; icon = '❌'; }
-            if (type === 'success') { bgColor = 'bg-emerald-100 border-emerald-400 text-emerald-700'; icon = '✅'; }
+            if (type === 'error') { bg = 'bg-red-50 border-red-200 text-red-800'; icon = '❌'; }
+            if (type === 'success') { bg = 'bg-emerald-50 border-emerald-200 text-emerald-800'; icon = '✅'; }
 
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `p-4 rounded-lg shadow-sm border ${bgColor} mb-4 flex items-center space-x-3 transition-opacity duration-300`;
-            msgDiv.innerHTML = `<span class="text-2xl">${icon}</span><p class="font-medium">${message}</p>`;
+            const msg = document.createElement('div');
+            msg.className = `p-4 rounded-xl text-sm font-semibold border ${bg} flex items-center space-x-3 transition-all duration-300 shadow-sm`;
+            msg.innerHTML = `<span class="text-lg">${icon}</span><span>${message}</span>`;
 
             container.innerHTML = '';
-            container.appendChild(msgDiv);
+            container.appendChild(msg);
 
             setTimeout(() => {
-                msgDiv.classList.add('opacity-0');
-                msgDiv.addEventListener('transitionend', () => msgDiv.remove());
-            }, 5000);
+                msg.classList.add('opacity-0', 'translate-y-[-10px]');
+                setTimeout(() => msg.remove(), 300);
+            }, 4000);
         }
 
         function getStartOfToday() {
-            const now = new Date();
-            now.setHours(0, 0, 0, 0);
-            return now.getTime();
+            const n = new Date();
+            n.setHours(0, 0, 0, 0);
+            return n.getTime();
         }
 
-        /**
-         * Redimensiona la firma del canvas a un tamaño fijo (150x50 píxeles) 
-         * para asegurar un peso ligero y una relación de aspecto consistente (3:1).
-         * @param {string} dataURL - La Data URL de la firma (image/png).
-         * @returns {string} La Data URL de la imagen redimensionada o null.
-         */
-        function getResizedSignature(dataURL) {
-            if (!dataURL) return null;
+        function escapeHtml(str) {
+            if (str == null) return '';
+            return String(str).replace(/[&<>"']/g, m => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[m]));
+        }
 
-            return new Promise((resolve) => {
+        function getResizedSignature(dataURL) {
+            if (!dataURL) return Promise.resolve(null);
+
+            return new Promise(resolve => {
                 const img = new Image();
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
-                    
-                    // Tamaño fijo y optimizado para el PDF (3:1 proporción)
-                    const targetWidth = 150; 
-                    const targetHeight = 50; 
-                    
-                    canvas.width = targetWidth;
-                    canvas.height = targetHeight;
-                    
-                    // Dibujar la imagen original ajustándola al canvas
-                    ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
-
-                    const resizedDataURL = canvas.toDataURL('image/png');
-                    resolve(resizedDataURL);
+                    canvas.width = 150;
+                    canvas.height = 50;
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillRect(0, 0, 150, 50);
+                    ctx.drawImage(img, 0, 0, 150, 50);
+                    resolve(canvas.toDataURL('image/png'));
                 };
-                img.onerror = () => {
-                    console.error("Error al cargar la imagen de la firma para redimensionar.");
-                    resolve(null);
-                };
+                img.onerror = () => resolve(null);
                 img.src = dataURL;
             });
         }
 
-        // --- 3. INITIALIZATION AND UI SETUP ---
+        // ============================================================
+        // AUTENTICACIÓN
+        // ============================================================
+        function updateUIForLogin(id) {
+            securityId = id;
+            $('security-id').textContent = id;
+            $('main-app-content').classList.remove('hidden');
+            $('login-modal').classList.add('hidden');
+            $('today-label').textContent = safeDateString(new Date());
 
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('checkout-form').addEventListener('submit', handleCheckout);
-            document.getElementById('return-form').addEventListener('submit', handleReturn);
-            document.getElementById('login-form').addEventListener('submit', handleLogin);
+            setTimeout(() => initSignaturePad(), 150);
+            renderAll();
+        }
 
-            const canvasCheckout = document.getElementById('signature-pad-checkout');
-            if (canvasCheckout) {
-                
-                // Función de redimensionamiento para el canvas del input
-                function resizeCanvas() {
-                    const ratio = Math.max(window.devicePixelRatio || 1, 1);
-                    canvasCheckout.width = canvasCheckout.offsetWidth * ratio; 
-                    canvasCheckout.height = canvasCheckout.offsetHeight * ratio;
-                    canvasCheckout.getContext("2d").scale(ratio, ratio);
-                }
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = $('username').value.trim();
+            const password = $('password').value.trim();
+            const errorDiv = $('login-error');
 
-                resizeCanvas(); 
-                setTimeout(resizeCanvas, 100); 
+            if (VALID_USERS[username] && VALID_USERS[username].password === password) {
+                sessionStorage.setItem(SESSION_KEY, VALID_USERS[username].id);
+                errorDiv.classList.add('hidden');
+                updateUIForLogin(VALID_USERS[username].id);
+                showMessage(`Bienvenido, ${username}.`, 'success');
+            } else {
+                errorDiv.classList.remove('hidden');
+            }
+        }
 
-                window.addEventListener('resize', resizeCanvas);
+        function handleLogout() {
+            sessionStorage.removeItem(SESSION_KEY);
+            securityId = null;
 
-                signaturePadCheckout = new SignaturePad(canvasCheckout, {
-                    backgroundColor: 'rgb(255, 255, 255)', 
-                    penColor: 'rgb(10, 42, 90)' // Azul Oscuro
-                });
-
-                document.getElementById('clear-signature-checkout').addEventListener('click', () => {
-                    signaturePadCheckout.clear();
-                });
+            if (signaturePadCheckout) {
+                try { signaturePadCheckout.off(); } catch {}
+                signaturePadCheckout = null;
             }
 
-            checkLoginStatus();
-            document.getElementById('key-list-loading').classList.add('hidden');
-        });
+            $('main-app-content').classList.add('hidden');
+            $('login-modal').classList.remove('hidden');
+            $('login-form').reset();
+        }
 
+        function checkLoginStatus() {
+            const storedId = sessionStorage.getItem(SESSION_KEY);
+            if (storedId && Object.values(VALID_USERS).some(u => u.id === storedId)) {
+                updateUIForLogin(storedId);
+            } else {
+                $('login-modal').classList.remove('hidden');
+                $('main-app-content').classList.add('hidden');
+            }
+        }
 
-        // --- 4. REGISTRAR ENTREGA DE LLAVE (CHECKOUT) CON FIRMA ---
+        // ============================================================
+        // SIGNATURE PAD
+        // ============================================================
+        function initSignaturePad() {
+            const canvas = $('signature-pad-checkout');
+            if (!canvas || signaturePadCheckout) return;
+
+            const hint = $('signature-hint');
+            const container = $('signature-container');
+
+            function resizeCanvas() {
+                const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                const rect = canvas.getBoundingClientRect();
+                if (rect.width === 0 || rect.height === 0) return;
+
+                let data = null;
+                if (signaturePadCheckout && !signaturePadCheckout.isEmpty()) {
+                    data = signaturePadCheckout.toData();
+                }
+
+                canvas.width = rect.width * ratio;
+                canvas.height = rect.height * ratio;
+                const ctx = canvas.getContext('2d');
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.scale(ratio, ratio);
+
+                if (signaturePadCheckout) {
+                    signaturePadCheckout.clear();
+                    if (data) signaturePadCheckout.fromData(data);
+                }
+            }
+
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = (rect.width || 300) * ratio;
+            canvas.height = (rect.height || 140) * ratio;
+            canvas.getContext('2d').scale(ratio, ratio);
+
+            signaturePadCheckout = new SignaturePad(canvas, {
+                backgroundColor: 'rgba(255,255,255,0)',
+                penColor: 'rgb(11, 31, 58)'
+            });
+
+            signaturePadCheckout.addEventListener('beginStroke', () => {
+                hint.style.opacity = '0';
+                container.classList.add('active');
+            });
+
+            window.addEventListener('resize', resizeCanvas);
+
+            $('clear-signature-checkout').addEventListener('click', () => {
+                signaturePadCheckout.clear();
+                hint.style.opacity = '1';
+                container.classList.remove('active');
+            });
+        }
+
+        // ============================================================
+        // CHECKOUT (ENTREGA)
+        // ============================================================
         async function handleCheckout(e) {
             e.preventDefault();
 
-            if (!securityId) {
-                showMessage("Debe iniciar sesión para registrar una entrega.", 'error');
+            if (!securityId) return;
+            if (!signaturePadCheckout || signaturePadCheckout.isEmpty()) {
+                showMessage("Firma obligatoria del solicitante.", 'error');
                 return;
             }
 
-            if (signaturePadCheckout && signaturePadCheckout.isEmpty()) {
-                showMessage("Por favor, el solicitante debe firmar en el recuadro antes de registrar la entrega.", 'error');
-                return;
-            }
-
-            const submitText = document.getElementById('submit-text');
-            const submitLoading = document.getElementById('submit-loading');
-            const checkoutSubmitBtn = document.getElementById('checkout-submit-btn');
-
-            checkoutSubmitBtn.disabled = true;
-            submitText.classList.add('hidden');
-            submitLoading.classList.remove('hidden');
-
-            const formData = new FormData(e.target);
-            
-            // 1. Obtener la Data URL original de la firma como PNG
-            const originalSignatureDataURL = signaturePadCheckout ? 
-                signaturePadCheckout.toDataURL('image/png') : 
-                null;
-                
-            // 2. REDIMENSIONAR ANTES DE GUARDAR (SOLUCIÓN AL ERROR DEL PDF)
-            const resizedSignature = await getResizedSignature(originalSignatureDataURL);
-
-            // Se deja el campo de observación vacío si no hay nada escrito.
-            const checkoutObservationValue = formData.get('checkoutObservation').trim() || ''; 
-
-
-            const newLog = {
-                id: generateUUID(), 
-                userName: formData.get('userName').trim(), // Input de texto libre
-                keyRequested: formData.get('keyRequested').trim(), 
-                checkoutLocation: formData.get('checkoutLocation'), 
-                checkoutObservation: checkoutObservationValue,
-                isReturned: false, 
-
-                checkoutTime: Date.now(), 
-                checkoutUserId: securityId, 
-                
-                // GUARDAR FIRMA PEQUEÑA Y OPTIMIZADA
-                checkoutSignature: resizedSignature, 
-            };
-
+            const keyReq = $('keyRequested').value.trim();
             const logs = loadLogs();
-            logs.push(newLog);
-            saveLogs(logs);
-            renderKeyList();
+            if (logs.some(l => !l.isReturned && l.keyRequested === keyReq)) {
+                showMessage(`El activo "${keyReq}" figura en tránsito. Debe registrar su devolución primero.`, 'error');
+                return;
+            }
 
-            showMessage("Entrega de llave registrada con éxito.", 'success');
-            e.target.reset(); 
-            if (signaturePadCheckout) signaturePadCheckout.clear(); 
+            const btn = $('checkout-submit-btn');
+            const txt = $('submit-text');
+            const load = $('submit-loading');
 
-            // Manejo visual de los labels después del reset
-            const inputs = e.target.querySelectorAll('.app-input');
-            inputs.forEach(input => {
-                const label = input.nextElementSibling;
-                if(label && label.classList.contains('input-label')) {
-                    // Solo si son selects o si ya tienen valor, forzar el label flotante
-                    if (input.tagName === 'SELECT' && input.value) {
-                         label.classList.add('-top-7', 'text-xs', 'text-blue-700');
-                    } else if (input.tagName !== 'SELECT') {
-                        // Para inputs de texto, simplemente se restablece el estilo por defecto
-                        label.classList.remove('-top-7', 'text-xs', 'text-blue-700');
-                    }
-                }
-            });
+            btn.disabled = true;
+            txt.classList.add('hidden');
+            load.classList.remove('hidden');
 
+            try {
+                const formData = new FormData(e.target);
+                const originalSignature = signaturePadCheckout.toDataURL('image/png');
+                const resizedSignature = await getResizedSignature(originalSignature);
 
-            checkoutSubmitBtn.disabled = false;
-            submitText.classList.remove('hidden');
-            submitLoading.classList.add('hidden');
+                const newLog = {
+                    id: generateUUID(),
+                    userName: formData.get('userName').trim(),
+                    keyRequested: keyReq,
+                    checkoutLocation: formData.get('checkoutLocation'),
+                    checkoutObservation: (formData.get('checkoutObservation') || '').trim(),
+                    isReturned: false,
+                    checkoutTime: Date.now(),
+                    checkoutUserId: securityId,
+                    checkoutSignature: resizedSignature
+                };
+
+                logs.push(newLog);
+                saveLogs(logs);
+
+                renderAll();
+                showMessage("Salida de activo registrada exitosamente.", 'success');
+
+                e.target.reset();
+                if (signaturePadCheckout) signaturePadCheckout.clear();
+                $('signature-hint').style.opacity = '1';
+                $('signature-container').classList.remove('active');
+
+            } catch (err) {
+                console.error("Error al registrar entrega:", err);
+                showMessage("Error procesando registro.", 'error');
+            } finally {
+                btn.disabled = false;
+                txt.classList.remove('hidden');
+                load.classList.add('hidden');
+            }
         }
 
-
-        // --- 5. RENDERIZAR LISTA DE LLAVES PENDIENTES ---
-        function renderKeyList() {
+        // ============================================================
+        // RENDERS & VISTAS
+        // ============================================================
+        function renderPending() {
             const logs = loadLogs();
-            const pendingKeys = logs.filter(log => !log.isReturned);
+            const pending = logs.filter(l => !l.isReturned).sort((a, b) => a.checkoutTime - b.checkoutTime);
+            const query = ($('search-pending')?.value || '').toLowerCase();
 
-            pendingKeys.sort((a, b) => a.checkoutTime - b.checkoutTime);
+            const filtered = pending.filter(k => 
+                k.keyRequested.toLowerCase().includes(query) ||
+                k.userName.toLowerCase().includes(query) ||
+                k.checkoutLocation.toLowerCase().includes(query)
+            );
 
-            const pendingKeysList = document.getElementById('pending-keys-list');
-            const keyListEmpty = document.getElementById('key-list-empty');
+            const list = $('pending-keys-list');
+            const empty = $('key-list-empty');
 
-            pendingKeysList.innerHTML = ''; 
+            list.innerHTML = '';
 
-            if (pendingKeys.length === 0) {
-                keyListEmpty.classList.remove('hidden');
+            if (filtered.length === 0) {
+                empty.classList.remove('hidden');
                 return;
             }
+            empty.classList.add('hidden');
 
-            keyListEmpty.classList.add('hidden');
-
-            pendingKeys.forEach(key => {
-                const checkoutTimeFormatted = formatTimestamp(key.checkoutTime);
-
-                const keyCard = document.createElement('div');
-                keyCard.className = 'key-pending-card'; // Clase del diseño Super Pro
-                keyCard.innerHTML = `
+            filtered.forEach(key => {
+                const diffMins = Math.floor((Date.now() - key.checkoutTime) / 60000);
+                const isOverdue = diffMins >= 120; // 2 horas o más
+                const card = document.createElement('div');
+                
+                card.className = `key-pending-card ${isOverdue ? 'alert-danger' : ''}`;
+                
+                card.innerHTML = `
                     <div class="flex-1 w-full">
-                        <p class="text-xl font-extrabold text-gray-800">${key.keyRequested}</p>
-                        <p class="text-sm text-gray-700 mb-1">
-                            <span class="font-bold text-gray-900">Solicita:</span> ${key.userName} 
-                            <span class="text-xs text-gray-500 ml-2">(${key.checkoutLocation})</span>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-base font-extrabold text-slate-900">${escapeHtml(key.keyRequested)}</span>
+                            <span class="status-pill ${isOverdue ? 'bg-red-200 text-red-800' : 'status-pending'}">${isOverdue ? 'DEMORADO' : 'EN TRÁNSITO'}</span>
+                        </div>
+                        <p class="text-xs text-slate-600 mt-1">
+                            <strong>Solicita:</strong> ${escapeHtml(key.userName)} · <strong>Destino:</strong> ${escapeHtml(key.checkoutLocation)}
                         </p>
-                        <p class="text-xs text-gray-500 mt-1">
-                            <span class="font-bold text-blue-900">ENTREGA:</span> ${checkoutTimeFormatted} 
-                            <span class="text-gray-400">por ${key.checkoutUserId}</span>
+                        <p class="text-xs font-semibold ${isOverdue ? 'text-red-600' : 'text-slate-400'} mt-1 flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            ${timeAgo(key.checkoutTime)} (Salida: ${formatTimeForPdf(key.checkoutTime)})
                         </p>
-                        <p class="text-xs text-gray-500 italic mt-0.5 max-w-sm overflow-hidden text-ellipsis whitespace-nowrap">Obs: ${key.checkoutObservation || 'Sin observación'}</p>
                     </div>
-                    <button data-id="${key.id}" data-key="${key.keyRequested}" data-user="${key.userName}" 
-                            class="btn-success w-full sm:w-auto log-return-btn text-sm">
-                        RETORNA
+                    <button data-id="${key.id}" data-key="${escapeHtml(key.keyRequested)}" data-user="${escapeHtml(key.userName)}"
+                            class="btn-success text-xs py-2.5 px-4 w-full sm:w-auto log-return-btn shadow-sm">
+                        Retornar Activo
                     </button>
                 `;
-                pendingKeysList.appendChild(keyCard);
+                list.appendChild(card);
             });
 
-            document.querySelectorAll('.log-return-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const docId = e.currentTarget.getAttribute('data-id');
-                    const keyName = e.currentTarget.getAttribute('data-key');
-                    const userName = e.currentTarget.getAttribute('data-user');
-                    openReturnModal(docId, keyName, userName);
+            list.querySelectorAll('.log-return-btn').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    const b = e.currentTarget;
+                    openReturnModal(b.dataset.id, b.dataset.key, b.dataset.user);
                 });
             });
         }
 
-        // --- 6. GESTIÓN DEL MODAL Y DEVOLUCIÓN ---
-        const returnModal = document.getElementById('return-modal');
-        const modalKeyName = document.getElementById('modal-key-name');
-        const modalUserName = document.getElementById('modal-user-name');
-        let currentEditingDocId = null;
+        function renderHistory() {
+            const logs = loadLogs();
+            const startOfDay = getStartOfToday();
+            const todayLogs = logs.filter(l => l.checkoutTime >= startOfDay)
+                                  .sort((a, b) => b.checkoutTime - a.checkoutTime);
 
-        window.openReturnModal = (docId, keyName, userName) => {
+            const query = ($('search-history')?.value || '').toLowerCase();
+            const filtered = todayLogs.filter(l => 
+                l.keyRequested.toLowerCase().includes(query) ||
+                l.userName.toLowerCase().includes(query) ||
+                l.checkoutLocation.toLowerCase().includes(query)
+            );
+
+            const body = $('history-body');
+            const empty = $('history-empty');
+
+            body.innerHTML = '';
+
+            if (filtered.length === 0) {
+                empty.classList.remove('hidden');
+                return;
+            }
+            empty.classList.add('hidden');
+
+            filtered.forEach(log => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="font-mono text-slate-500">${formatTimeForPdf(log.checkoutTime)}</td>
+                    <td class="font-bold text-slate-900">${escapeHtml(log.keyRequested)}</td>
+                    <td class="font-medium">${escapeHtml(log.userName)}</td>
+                    <td>${escapeHtml(log.checkoutLocation)}</td>
+                    <td class="font-mono text-slate-500 text-xs">${escapeHtml(log.checkoutUserId)}</td>
+                    <td class="text-center">
+                        <span class="status-pill ${log.isReturned ? 'status-returned' : 'status-pending'}">
+                            ${log.isReturned ? 'DEVUELTO' : 'PENDIENTE'}
+                        </span>
+                    </td>
+                    <td class="font-mono text-slate-500">${log.isReturned ? formatTimeForPdf(log.returnTime) : '-'}</td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        function renderStats() {
+            const logs = loadLogs();
+            const startOfDay = getStartOfToday();
+            const todayLogs = logs.filter(l => l.checkoutTime >= startOfDay);
+
+            $('stat-today').textContent = todayLogs.length;
+            $('stat-pending').textContent = logs.filter(l => !l.isReturned).length;
+            $('stat-returned').textContent = todayLogs.filter(l => l.isReturned).length;
+        }
+
+        function renderAll() {
+            renderPending();
+            renderHistory();
+            renderStats();
+        }
+
+        // ============================================================
+        // DEVOLUCIÓN
+        // ============================================================
+        function openReturnModal(docId, keyName, userName) {
             currentEditingDocId = docId;
-            modalKeyName.textContent = keyName;
-            modalUserName.textContent = userName;
-            returnModal.classList.remove('hidden');
-            returnModal.classList.add('flex');
-
-            document.getElementById('return-form').reset();
-            document.getElementById('returnLocation').focus();
+            $('modal-key-name').textContent = keyName;
+            $('modal-user-name').textContent = userName;
+            $('return-modal').classList.remove('hidden');
+            $('return-modal').classList.add('flex');
+            $('return-form').reset();
+            setTimeout(() => $('returnLocation').focus(), 50);
         }
 
-        window.closeReturnModal = () => {
+        function closeReturnModal() {
             currentEditingDocId = null;
-            returnModal.classList.add('hidden');
-            returnModal.classList.remove('flex');
+            $('return-modal').classList.add('hidden');
+            $('return-modal').classList.remove('flex');
         }
 
-        // --- 7. REGISTRAR DEVOLUCIÓN DE LLAVE (RETURN) ---
         async function handleReturn(e) {
             e.preventDefault();
+            if (!securityId || !currentEditingDocId) return;
 
-            if (!securityId) {
-                showMessage("Debe iniciar sesión para registrar una devolución.", 'error');
+            const btn = $('confirm-return-btn');
+            const txt = $('return-submit-text');
+            const load = $('return-submit-loading');
+
+            btn.disabled = true;
+            txt.classList.add('hidden');
+            load.classList.remove('hidden');
+
+            try {
+                const formData = new FormData(e.target);
+                const logs = loadLogs();
+                const idx = logs.findIndex(l => l.id === currentEditingDocId);
+
+                if (idx !== -1) {
+                    logs[idx] = {
+                        ...logs[idx],
+                        isReturned: true,
+                        returnTime: Date.now(),
+                        returnLocation: formData.get('returnLocation'),
+                        returnObservation: (formData.get('returnObservation') || '').trim(),
+                        returnUserId: securityId
+                    };
+                    saveLogs(logs);
+                    renderAll();
+                    showMessage("Devolución confirmada en sistema.", 'success');
+                }
+            } catch (err) {
+                console.error("Error:", err);
+            } finally {
                 closeReturnModal();
-                return;
+                btn.disabled = false;
+                txt.classList.remove('hidden');
+                load.classList.add('hidden');
             }
+        }
 
-            if (!currentEditingDocId) {
-                showMessage("Error: ID de registro no encontrado.", 'error');
-                closeReturnModal();
-                return;
-            }
-
-            const returnSubmitText = document.getElementById('return-submit-text');
-            const returnSubmitLoading = document.getElementById('return-submit-loading');
-            const confirmReturnBtn = document.getElementById('confirm-return-btn');
-
-            confirmReturnBtn.disabled = true;
-            returnSubmitText.classList.add('hidden');
-            returnSubmitLoading.classList.remove('hidden');
-
-            const formData = new FormData(e.target);
+        // ============================================================
+        // BACKUP / RESTORE
+        // ============================================================
+        function exportBackup() {
+            const logs = loadLogs();
+            if (logs.length === 0) return showMessage("Sin registros para exportar.", 'info');
             
-            // Se deja el campo de observación vacío si no hay nada escrito.
-            const returnObservationValue = formData.get('returnObservation').trim() || '';
-
-            const returnData = {
-                isReturned: true,
-                returnTime: Date.now(), 
-                returnLocation: formData.get('returnLocation'), 
-                returnObservation: returnObservationValue,
-                returnUserId: securityId, 
+            const backupObj = {
+                app: "Control de Llaves - Departamento de Seguridad",
+                exportedAt: new Date().toISOString(),
+                logs: logs
             };
 
-            const logs = loadLogs();
-            const logIndex = logs.findIndex(log => log.id === currentEditingDocId);
-
-            if (logIndex !== -1) {
-                logs[logIndex] = { ...logs[logIndex], ...returnData };
-                saveLogs(logs);
-                renderKeyList();
-
-                showMessage("Devolución de llave registrada con éxito.", 'success');
-            } else {
-                showMessage("Error: El registro a devolver no fue encontrado.", 'error');
-            }
-
-            closeReturnModal();
-            confirmReturnBtn.disabled = false;
-            returnSubmitText.classList.remove('hidden');
-            returnSubmitLoading.classList.add('hidden');
+            const blob = new Blob([JSON.stringify(backupObj, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `backup_llaves_${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            showMessage(`Respaldo generado (${logs.length} registros).`, 'success');
         }
 
+        function importBackup(file) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                try {
+                    const parsed = JSON.parse(ev.target.result);
+                    const incomingLogs = Array.isArray(parsed) ? parsed : parsed.logs;
 
-        // ******************************************************************
-        // ************ FUNCIÓN DE EXPORTACIÓN CON jsPDF.autoTable() *********
-        // ******************************************************************
+                    if (!Array.isArray(incomingLogs)) throw new Error('Estructura inválida.');
+                    
+                    if (confirm(`¿Restaurar respaldo con ${incomingLogs.length} registros? Se fusionará con el historial existente.`)) {
+                        const existing = loadLogs();
+                        const map = new Map();
+                        existing.forEach(item => map.set(item.id, item));
+                        incomingLogs.forEach(item => map.set(item.id, item));
 
-        function addReportHeaderAndFooter(doc, pageWidth, margin) {
+                        saveLogs(Array.from(map.values()));
+                        renderAll();
+                        showMessage("Datos restaurados correctamente.", 'success');
+                    }
+                } catch (err) {
+                    showMessage('Archivo JSON no válido.', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // ============================================================
+        // REPORTE PDF
+        // ============================================================
+        function addReportHeader(doc, pageWidth, margin, dataSummary) {
+            let y = 12;
+
+            doc.setFillColor(11, 31, 58);
+            doc.rect(0, 0, pageWidth, 4, 'F');
+
+            doc.setFontSize(13).setFont('helvetica', 'bold').setTextColor(11, 31, 58);
+            doc.text("DEPARTAMENTO DE SEGURIDAD", margin, y + 4);
+            
+            doc.setFontSize(9).setFont('helvetica', 'normal').setTextColor(100, 116, 139);
+            doc.text(safeDateString(new Date()), pageWidth - margin, y + 4, { align: 'right' });
+            y += 8;
+
+            doc.setFontSize(10).setFont('helvetica', 'bold').setTextColor(71, 85, 105);
+            doc.text("REPORTE DE CONTROL DE LLAVES Y ACTIVOS", margin, y + 3);
+            
+            doc.setFont('helvetica', 'normal').setFontSize(8);
+            doc.text(`Oficial a cargo: ${securityId}`, pageWidth - margin, y + 3, { align: 'right' });
+            y += 8;
+
+            doc.setDrawColor(226, 232, 240);
+            doc.setLineWidth(0.5);
+            doc.line(margin, y, pageWidth - margin, y);
+            y += 6;
+
+            if (doc.internal.getNumberOfPages() === 1 && dataSummary) {
+                const boxW = (pageWidth - (margin * 2) - 8) / 3;
+                
+                doc.setFillColor(248, 250, 252); 
+                doc.roundedRect(margin, y, boxW, 10, 1, 1, 'F');
+                doc.setFontSize(7).setTextColor(100).setFont('helvetica', 'normal');
+                doc.text("TOTAL REGISTROS:", margin + 3, y + 4);
+                doc.setFontSize(9).setTextColor(15, 23, 42).setFont('helvetica', 'bold');
+                doc.text(String(dataSummary.total), margin + 3, y + 8);
+
+                doc.setFillColor(254, 243, 199); 
+                doc.roundedRect(margin + boxW + 4, y, boxW, 10, 1, 1, 'F');
+                doc.setFontSize(7).setTextColor(146, 64, 14).setFont('helvetica', 'normal');
+                doc.text("PENDIENTES:", margin + boxW + 7, y + 4);
+                doc.setFontSize(9).setTextColor(146, 64, 14).setFont('helvetica', 'bold');
+                doc.text(String(dataSummary.pending), margin + boxW + 7, y + 8);
+
+                doc.setFillColor(209, 250, 229); 
+                doc.roundedRect(margin + (boxW * 2) + 8, y, boxW, 10, 1, 1, 'F');
+                doc.setFontSize(7).setTextColor(6, 95, 70).setFont('helvetica', 'normal');
+                doc.text("DEVUELTAS:", margin + (boxW * 2) + 11, y + 4);
+                doc.setFontSize(9).setTextColor(6, 95, 70).setFont('helvetica', 'bold');
+                doc.text(String(dataSummary.returned), margin + (boxW * 2) + 11, y + 8);
+
+                y += 14; 
+            }
+
+            return y;
+        }
+
+        function addReportFooter(doc, pageWidth, margin) {
             const pageHeight = doc.internal.pageSize.height;
-            let yPos = 15;
+            doc.setDrawColor(226, 232, 240);
+            doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12);
 
-            // TÍTULOS
-            doc.setFontSize(16).setFont('helvetica', 'bold');
-            doc.setTextColor(10, 42, 90); // Azul Profundo
-            doc.text("GRUPO RIBA SMITH", pageWidth / 2, yPos, { align: 'center' });
-            yPos += 6;
-            doc.setFontSize(12).setFont('helvetica', 'normal');
-            doc.text("R/S CHITRÉ SELECTO", pageWidth / 2, yPos, { align: 'center' });
-            yPos += 5;
-
-            doc.setFontSize(14).setFont('helvetica', 'bold');
-            doc.setTextColor(45, 106, 172); // Azul Corporativo
-            doc.text("REPORTE DIARIO DE CONTROL DE LLAVES", pageWidth / 2, yPos, { align: 'center' });
-            yPos += 8;
-
-            // INFORMACIÓN DE FECHA Y USUARIO
-            const todayDate = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            doc.setFontSize(10).setFont('helvetica', 'normal');
-            doc.setTextColor(75, 85, 99); 
-            doc.text(`Fecha del Reporte: ${todayDate}`, margin, yPos);
-            doc.text(`Generado por ID de Seguridad: ${securityId}`, pageWidth - margin, yPos, { align: 'right' });
-            yPos += 5;
-
-            // PIE DE PÁGINA
-            doc.setFontSize(8).setFont('helvetica', 'normal');
-            doc.setTextColor(107, 114, 128); 
-            const footerText = 'Powered by Rafael Ramos | Página ' + doc.internal.getNumberOfPages();
-            doc.text(footerText, pageWidth / 2, pageHeight - 5, { align: 'center' });
-
-            return yPos + 3; 
+            doc.setFontSize(7).setFont('helvetica', 'normal').setTextColor(148, 163, 184);
+            doc.text(`Sistema de Control Interno · Departamento de Seguridad`, margin, pageHeight - 7);
+            doc.text(`Página ${doc.internal.getNumberOfPages()}`, pageWidth - margin, pageHeight - 7, { align: 'right' });
         }
 
-        window.generateDailyReportPdf = function() {
-            if (!securityId) {
-                showMessage("Debe iniciar sesión para generar el reporte.", 'error');
-                return;
-            }
+        async function generateDailyReportPdf() {
+            if (!securityId) return showMessage("Inicie sesión para continuar.", 'error');
 
-            let jsPDF_Constructor;
-
-            if (typeof jsPDF !== 'undefined') {
-                jsPDF_Constructor = jsPDF;
-            } 
-            else if (window.jspdf && window.jspdf.jsPDF) {
-                jsPDF_Constructor = window.jspdf.jsPDF;
-            } 
-            else {
-                showMessage("❌ ERROR: La librería jsPDF y/o el plugin autotable no están cargados correctamente. Verifique la conexión a internet.", 'error');
-                return;
-            }
-
-            // Inicializar jsPDF
-            const doc = new jsPDF_Constructor('p', 'mm', 'a4'); 
-
-            if (typeof doc.autoTable !== 'function') {
-                showMessage("❌ ERROR: El plugin jsPDF AutoTable no se cargó.", 'error');
-                return;
-            }
+            const jsPDFCtor = window.jspdf?.jsPDF || window.jsPDF;
+            if (!jsPDFCtor) return showMessage("Error cargando librería PDF.", 'error');
 
             const logs = loadLogs();
-            const startOfToday = getStartOfToday();
-            const todayLogs = logs.filter(log => log.checkoutTime >= startOfToday)
-                                  .sort((a, b) => a.checkoutTime - b.checkoutTime);
+            const startOfDay = getStartOfToday();
+            const todayLogs = logs.filter(l => l.checkoutTime >= startOfDay)
+                                   .sort((a, b) => a.checkoutTime - b.checkoutTime);
 
             if (todayLogs.length === 0) {
-                showMessage("No hay registros de entrega para el día de hoy para generar el reporte.", 'info');
-                return;
+                return showMessage("No hay registros en la fecha actual.", 'info');
             }
 
-            const margin = 10;
+            const doc = new jsPDFCtor('p', 'mm', 'a4');
+            const margin = 12;
             const pageWidth = doc.internal.pageSize.getWidth();
 
-            // Re-añadir el encabezado para la primera página
-            let currentY = addReportHeaderAndFooter(doc, pageWidth, margin); 
+            const total = todayLogs.length;
+            const pending = todayLogs.filter(l => !l.isReturned).length;
+            const returned = total - pending;
+
+            const startY = addReportHeader(doc, pageWidth, margin, { total, pending, returned });
 
             const headers = [
-                "Activo", 
-                "Usuario", 
-                "Depto (ENT)", 
-                "ID Ent",
-                "Hora Ent",
-                "Firma (ENT)", // Índice 5
-                "Estado",
-                "ID Ret",
-                "Hora Ret",
-                "Obs. (ENTREGA)",
-                "Obs. (RETORNA)"
+                "Activo", "Solicitante", "Destino", "Salida", "Firma", "Estado", "Recibió", "Devolución"
             ];
 
-            // Preparar el cuerpo de la tabla
+            const columnStyles = {
+                0: { cellWidth: 20, fontStyle: 'bold' },
+                1: { cellWidth: 26 },
+                2: { cellWidth: 22 },
+                3: { cellWidth: 18, halign: 'center' },
+                4: { cellWidth: 28, halign: 'center', minCellHeight: 12 },
+                5: { cellWidth: 20, fontStyle: 'bold', halign: 'center' },
+                6: { cellWidth: 22, halign: 'center' },
+                7: { cellWidth: 20, halign: 'center' }
+            };
+
             const body = todayLogs.map(log => {
-                const hourEnt = formatTimeForPdf(log.checkoutTime);
-                const hourRet = log.isReturned ? formatTimeForPdf(log.returnTime) : ''; // Celdas vacías
-                const status = log.isReturned ? 'DEVUELTO' : 'PENDIENTE';
-
-                // CORRECCIÓN: Si la observación está vacía (''), se pone '' en el PDF, no 'N/A'
-                const obsEnt = log.checkoutObservation || ''; 
-                const obsRet = log.returnObservation || '';
-
-                let signatureImage = null;
-                if (log.checkoutSignature && typeof log.checkoutSignature === 'string' && 
-                   log.checkoutSignature.startsWith('data:image/png')) { 
-                    signatureImage = log.checkoutSignature;
-                }
-
-                return [
+                const row = [
                     log.keyRequested || '',
                     log.userName || '',
                     log.checkoutLocation || '',
-                    log.checkoutUserId || '', 
-                    hourEnt,
-                    signatureImage || '', // Firma optimizada o celda vacía
-                    status,
-                    log.returnUserId || '', 
-                    hourRet,
-                    obsEnt, // Campo corregido
-                    obsRet  // Campo corregido
+                    `${formatTimeForPdf(log.checkoutTime)}\n(${log.checkoutUserId})`,
+                    '',
+                    log.isReturned ? 'DEVUELTO' : 'PENDIENTE',
+                    log.returnUserId || '-',
+                    log.isReturned ? formatTimeForPdf(log.returnTime) : '-'
                 ];
+                row.checkoutSignature = log.checkoutSignature || null;
+                return row;
             });
 
-            // 3. GENERACIÓN DE LA TABLA CON ESTILO
             doc.autoTable({
-                startY: currentY,
+                startY: startY,
                 head: [headers],
                 body: body,
-                theme: 'grid', 
-                headStyles: { 
-                    fillColor: [10, 42, 90], // Azul Profundo
-                    textColor: 255, 
+                theme: 'plain',
+                headStyles: {
+                    fillColor: [11, 31, 58],
+                    textColor: 255,
                     fontStyle: 'bold',
-                    fontSize: 7, 
-                    halign: 'center' 
+                    fontSize: 7.5,
+                    halign: 'left',
+                    valign: 'middle'
                 },
-                styles: {
-                    fontSize: 6.5, 
-                    cellPadding: 1, 
-                    overflow: 'linebreak' 
+                bodyStyles: {
+                    fontSize: 7,
+                    textColor: [51, 65, 85],
+                    valign: 'middle',
+                    cellPadding: 2
                 },
-                columnStyles: {
-                    0: { cellWidth: 12, halign: 'center' }, // Activo
-                    1: { cellWidth: 16 }, // Usuario
-                    2: { cellWidth: 14 }, // Depto (ENT)
-                    3: { cellWidth: 8, halign: 'center' }, // ID Ent
-                    4: { cellWidth: 8, halign: 'center' }, // Hora Ent
-                    5: { cellWidth: 18, halign: 'center', minCellHeight: 12, valign: 'middle' }, // FIRMA (Espacio fijo)
-                    6: { cellWidth: 13, fontStyle: 'bold', halign: 'center' }, // Estado 
-                    7: { cellWidth: 8, halign: 'center' }, // ID Ret
-                    8: { cellWidth: 8, halign: 'center' }, // Hora Ret
-                    9: { cellWidth: 32 }, // Obs. (ENTREGA)
-                    10: { cellWidth: 32 }  // Obs. (RETORNA)
+                alternateRowStyles: {
+                    fillColor: [248, 250, 252]
                 },
-                margin: { left: margin, right: margin },
+                columnStyles: columnStyles,
+                margin: { left: margin, right: margin, top: 25, bottom: 20 },
 
-                didDrawPage: (data) => {
-                    addReportHeaderAndFooter(doc, pageWidth, margin);
+                didDrawPage: () => {
+                    if (doc.internal.getNumberOfPages() > 1) {
+                        addReportHeader(doc, pageWidth, margin, null);
+                    }
+                    addReportFooter(doc, pageWidth, margin);
                 },
 
-                // Manejo de la imagen de firma optimizada (SOLUCIÓN A LA DISTORSIÓN)
-                didDrawCell: (data) => {
-                    // Columna de Firma (Índice 5) y solo en el cuerpo de la tabla
+                didParseCell: (data) => {
                     if (data.column.index === 5 && data.cell.section === 'body') {
-                        const firmaDataURL = data.cell.raw; 
-                        
-                        if (firmaDataURL && typeof firmaDataURL === 'string' && firmaDataURL.startsWith('data:image/png')) {
-                            
-                            const cellWidth = data.cell.width;
-                            const cellHeight = data.cell.height;
-                            const imgPadding = 0.5; 
-                            
-                            // Dimensiones objetivo de la celda (con padding)
-                            const maxW = cellWidth - (2 * imgPadding);
-                            const maxH = cellHeight - (2 * imgPadding);
-                            
-                            // La firma se guardó con 150x50, relación 3:1
-                            const imgW = 150;
-                            const imgH = 50;
-                            let ratio = Math.min(maxW / imgW, maxH / imgH);
-                            
-                            // Usar la relación de aspecto calculada para escalar
-                            const finalW = imgW * ratio;
-                            const finalH = imgH * ratio;
-                            
-                            // Calcular la posición para centrar la imagen dentro de la celda
-                            const xPos = data.cell.x + imgPadding + (maxW - finalW) / 2;
-                            const yPos = data.cell.y + imgPadding + (maxH - finalH) / 2;
+                        const val = String(data.cell.raw || '').trim();
+                        if (val === 'PENDIENTE') {
+                            data.cell.styles.textColor = [180, 83, 9];
+                        } else {
+                            data.cell.styles.textColor = [4, 120, 87];
+                        }
+                    }
+                },
 
-                            doc.addImage(
-                                firmaDataURL, 
-                                'PNG', 
-                                xPos, 
-                                yPos, 
-                                finalW, 
-                                finalH
-                            );
+                didDrawCell: (data) => {
+                    if (data.column.index === 4 && data.cell.section === 'body') {
+                        const firma = data.row.raw.checkoutSignature;
+                        if (firma && typeof firma === 'string' && firma.startsWith('data:image/png')) {
+                            const pad = 1;
+                            const maxW = data.cell.width - pad * 2;
+                            const maxH = data.cell.height - pad * 2;
+                            const ratio = Math.min(maxW / 150, maxH / 50);
+                            const w = 150 * ratio;
+                            const h = 50 * ratio;
+                            const x = data.cell.x + pad + (maxW - w) / 2;
+                            const y = data.cell.y + pad + (maxH - h) / 2;
+
+                            try {
+                                doc.addImage(firma, 'PNG', x, y, w, h);
+                            } catch (e) {}
                         }
-                    } 
-                    
-                    // Aplicar el estilo condicional para el estado (Columna 6)
-                    if (data.column.index === 6 && data.cell.section === 'body') { 
-                        const status = data.cell.text[0];
-                        if (status === 'PENDIENTE') {
-                            data.cell.styles.fillColor = [253, 242, 218]; // Amarillo/Crema
-                            doc.setTextColor(180, 83, 9); 
-                        } else if (status === 'DEVUELTO') {
-                            data.cell.styles.fillColor = [220, 252, 231]; // Verde muy claro
-                            doc.setTextColor(5, 150, 105); 
-                        }
-                        data.cell.styles.fontStyle = 'bold';
                     }
                 }
             });
 
-            const filename = `Reporte_ControlLlaves_${new Date().toISOString().slice(0, 10)}.pdf`;
-            doc.save(filename);
+            let finalY = doc.lastAutoTable.finalY + 20;
+            if (finalY > doc.internal.pageSize.height - 40) {
+                doc.addPage();
+                addReportHeader(doc, pageWidth, margin, null);
+                addReportFooter(doc, pageWidth, margin);
+                finalY = 35;
+            }
 
-            showMessage(`PDF de reporte diario generado y descargado: ${filename}`, 'success');
+            const lineWidth = 70;
+            const centerX = (pageWidth - lineWidth) / 2;
+
+            doc.setDrawColor(148, 163, 184);
+            doc.line(centerX, finalY, centerX + lineWidth, finalY);
+
+            doc.setFontSize(8).setTextColor(100).setFont('helvetica', 'normal');
+            doc.text("Firma del Supervisor de Seguridad", pageWidth / 2, finalY + 4, { align: 'center' });
+
+            const filename = `Reporte_Llaves_${new Date().toISOString().slice(0, 10)}.pdf`;
+            doc.save(filename);
+            showMessage("Reporte PDF generado correctamente.", 'success');
         }
+
+        // ============================================================
+        // INICIALIZACIÓN
+        // ============================================================
+        // Instalación PWA y soporte de funcionamiento sin conexión.
+        let deferredInstallPrompt = null;
+        const installButton = document.getElementById('install-app-btn');
+        window.addEventListener('beforeinstallprompt', (event) => {
+            event.preventDefault();
+            deferredInstallPrompt = event;
+            if (installButton) installButton.classList.remove('hidden');
+        });
+        if (installButton) installButton.addEventListener('click', async () => {
+            if (!deferredInstallPrompt) {
+                showMessage('Si tu navegador no ofrece instalar, abre el menú del navegador y elige “Instalar aplicación” o “Añadir a pantalla de inicio”.', 'info');
+                return;
+            }
+            deferredInstallPrompt.prompt();
+            await deferredInstallPrompt.userChoice;
+            deferredInstallPrompt = null;
+            installButton.classList.add('hidden');
+        });
+        window.addEventListener('appinstalled', () => {
+            if (installButton) installButton.classList.add('hidden');
+            showMessage('Aplicación instalada correctamente.', 'success');
+        });
+        if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+            window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(err => console.warn('No se pudo registrar el modo sin conexión:', err)));
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            $('checkout-form').addEventListener('submit', handleCheckout);
+            $('return-form').addEventListener('submit', handleReturn);
+            $('login-form').addEventListener('submit', handleLogin);
+
+            $('logout-btn').addEventListener('click', handleLogout);
+            $('end-day-report-btn').addEventListener('click', generateDailyReportPdf);
+            $('cancel-return-btn').addEventListener('click', closeReturnModal);
+            $('export-backup-btn').addEventListener('click', exportBackup);
+
+            $('import-backup-input').addEventListener('change', (e) => {
+                importBackup(e.target.files[0]);
+                e.target.value = '';
+            });
+
+            $('search-pending').addEventListener('input', renderPending);
+            $('search-history').addEventListener('input', renderHistory);
+
+            window.addEventListener('storage', (e) => {
+                if (e.key === STORAGE_KEY) renderAll();
+            });
+
+            // Refrescar el "Hace X minutos" cada 60 segundos automáticamente
+            setInterval(renderPending, 60000);
+
+            checkLoginStatus();
+        });
     </script>
 </body>
 </html>
